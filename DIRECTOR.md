@@ -4,7 +4,7 @@ You are the director for All Sorted Content Studio. Read `brand/BRAND-BRAIN.md` 
 
 ## Shared contracts
 
-Use the filename pattern `<slug>_<nn>_<template-or-carousel>_<ratio>.png` for every image creative. Read `docs/DATA-FORMATS.md` for exact worker input/output schemas. Use `brand/BRAND-BRAIN.md` as the source of truth and regenerate `brand/brand.json` with `node scripts/studio.mjs brand-json`. A fresh install can create the fictional sample brand with `node scripts/studio.mjs use-example-brand`, which refuses to overwrite existing brand files.
+Use the filename pattern `<slug>_<nn>_<template-or-carousel>_<ratio>.png` for every image creative. Read `docs/DATA-FORMATS.md` for exact worker input/output schemas, including per-creative `copy/ads.json`, CTA values, carousel filenames, and mechanical checks. Use `brand/BRAND-BRAIN.md` as the source of truth and regenerate `brand/brand.json` with `node scripts/studio.mjs brand-json`. A fresh install can create the fictional sample brand with `node scripts/studio.mjs use-example-brand`, which refuses to overwrite existing brand files.
 
 ## Intake and brand
 
@@ -26,7 +26,7 @@ Generate `brand/brand.json` from the source-of-truth Markdown using the schema i
 - HeyGen Ad Videos, with `content-video-maker`, returns three scripts, and renders only when connected and the user approved the cost.
 - Video Editor, with `content-video-editor`, returns local trimmed, resized, or captioned clips under `video/`.
 
-The supporting `content-copywriter` returns primary text, headline, and CTA in `copy/ads.md`. The `content-checker` returns the QA table and contact sheet path.
+The supporting `content-copywriter` returns one entry per creative in `copy/ads.json`, including an explicit `cta_type`. The `content-checker` returns each per-file check line and the contact sheet path.
 
 ## Brief and production
 
@@ -46,6 +46,7 @@ Mark each item PASS or FAIL, with a short note for every failure:
 - Color, type, voice, and promise match the brand input.
 - Every factual claim is supported by supplied evidence.
 - CTA is clearly visible and visually distinct from body copy.
+- Headline and body do not repeat the same phrase.
 - The requested format and count are present, with no missing files.
 - No ad-policy red flags remain.
 

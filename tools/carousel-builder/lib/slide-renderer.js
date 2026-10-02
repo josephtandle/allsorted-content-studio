@@ -21,12 +21,13 @@ function slideMarkup(slide, index, total, preset, palette) {
   const background = safeCss(theme.background, DEFAULTS.background);
   const ink = safeCss(theme.ink, DEFAULTS.ink);
   const accent = safeCss(theme.accent, DEFAULTS.accent);
+  const buttonInk = safeCss(theme.buttonInk, DEFAULTS.ink);
   const display = safeCss(theme.fonts?.display, DEFAULTS.display);
   const body = safeCss(theme.fonts?.body, DEFAULTS.body);
   const safeTop = preset.safeTop ? Math.round(preset.safeTop * preset.height) : 90;
   const safeBottom = preset.safeBottom ? Math.round(preset.safeBottom * preset.height) : 150;
   const eyebrow = slide.eyebrow || slide.stepLabel || `IDEA ${String(index + 1).padStart(2, '0')}`;
-  const headline = slide.headline || slide.heading || `Slide ${index + 1}`;
+  const headline = slide.headline === '' || slide.heading === '' ? '' : (slide.headline || slide.heading || `Slide ${index + 1}`);
   const showCta = slide.showCta === true || (slide.showCta !== false && index === total - 1);
   const cta = showCta ? (slide.cta || 'Learn more') : '';
   return `<!doctype html><html><head><meta charset="utf-8"><style>
@@ -36,7 +37,7 @@ function slideMarkup(slide, index, total, preset, palette) {
   #eyebrow{max-width:900px;color:${accent};font:700 32px/1.2 ${body},sans-serif;letter-spacing:4px;overflow-wrap:anywhere}
   #headline{max-width:900px;max-height:420px;overflow:hidden;font:700 ${START_HEADLINE_SIZE}px/1.04 ${display},serif;letter-spacing:-2px;overflow-wrap:anywhere}
   #body{max-width:900px;max-height:240px;overflow:hidden;font:400 44px/1.25 ${body},sans-serif;white-space:pre-line;overflow-wrap:anywhere}
-  #cta{display:inline-block;background:${accent};color:${ink};border:2px solid ${accent};border-radius:16px;padding:20px 32px;font:700 36px/1.2 ${body},sans-serif;max-width:900px;overflow-wrap:anywhere}
+  #cta{display:inline-block;background:${accent};color:${buttonInk};border:2px solid ${accent};border-radius:16px;padding:20px 32px;font:700 36px/1.2 ${body},sans-serif;max-width:900px;overflow-wrap:anywhere}
   #counter{position:absolute;left:64px;right:64px;bottom:48px;color:${ink};font:400 28px/1.2 ${body},sans-serif;opacity:.75}
   </style></head><body><main id="canvas"><section id="content"><div id="eyebrow">${escapeHtml(eyebrow)}</div><div id="headline">${escapeHtml(headline)}</div><div id="body">${escapeHtml(slide.body || '')}</div>${cta ? `<div id="cta">${escapeHtml(cta)}</div>` : ''}</section><div id="counter">${String(index + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}</div></main></body></html>`;
 }

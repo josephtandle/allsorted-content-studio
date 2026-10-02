@@ -52,7 +52,8 @@ async function main() {
     const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
     const specLink = page.locator('a[download]').getAttribute('href');
     const specHref = await specLink;
-    const specPath = path.join(process.env.CAROUSEL_WORKSPACE || path.join(root, '.test-data/browser-workspace'), 'creatives', path.basename(decodeURIComponent(new URL(specHref, base).pathname)));
+    const specName = decodeURIComponent(new URL(specHref, base).pathname.split('/').pop());
+    const specPath = path.join(process.env.CAROUSEL_WORKSPACE || path.join(root, '.test-data/browser-workspace'), 'creatives', specName);
     const spec = JSON.parse(await fs.readFile(specPath, 'utf8'));
     if (spec.cards.length !== 3) throw new Error(`Expected 3 cards, found ${spec.cards.length}`);
     if (manifest.files.length < 3) throw new Error('The manifest does not contain the three exported slides.');

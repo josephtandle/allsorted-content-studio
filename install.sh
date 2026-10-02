@@ -3,38 +3,41 @@ set -eu
 SRC=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 HOME_DIR=${HOME}
 DEST=''
+CHECK=0
+NO_NPM=${ALLSORTED_NO_NPM:-0}
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --home) HOME_DIR=$2; shift 2;;
-    --dir) DEST=$2; shift 2;;
+    --home) [ "$#" -ge 2 ] || { echo 'Provide a folder after --home.' >&2; exit 2; }; HOME_DIR=$2; shift 2;;
+    --dir) [ "$#" -ge 2 ] || { echo 'Provide a folder after --dir.' >&2; exit 2; }; DEST=$2; shift 2;;
+    --check) CHECK=1; shift;;
+    --no-npm) NO_NPM=1; shift;;
     *) echo "Unknown option: $1" >&2; exit 2;;
   esac
 done
-if [ -z "$DEST" ]; then DEST="$HOME_DIR/allsorted-content-studio"; fi
+[ -n "$DEST" ] || DEST="$HOME_DIR/allsorted-content-studio"
 case "$DEST" in /*) ;; *) DEST="$PWD/$DEST";; esac
 NODE=$(command -v node || true)
-if [ -z "$NODE" ]; then echo 'Node.js 20.9 or later is required. Install Node.js, then run this installer again.' >&2; exit 1; fi
-NODE_VERSION=$($NODE -p 'process.versions.node')
-$NODE -e 'const [a,b]=process.versions.node.split(".").map(Number); if(a<20||(a===20&&b<9)) process.exit(1)' || { echo "Node.js 20.9 or later is required. Found $NODE_VERSION." >&2; exit 1; }
-if ! { command -v google-chrome >/dev/null 2>&1 || command -v google-chrome-stable >/dev/null 2>&1 || command -v microsoft-edge >/dev/null 2>&1 || { command -v open >/dev/null 2>&1 && { open -Ra 'Google Chrome' >/dev/null 2>&1 || open -Ra 'Microsoft Edge' >/dev/null 2>&1; }; } || [ -x "$HOME_DIR/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ]; }; then echo 'Install Google Chrome, then run this installer again.' >&2; exit 1; fi
-mkdir -p "$DEST"
-if [ ! -f "$DEST/VERSION" ] || ! cmp -s "$SRC/VERSION" "$DEST/VERSION"; then
-  rsync -a --exclude='node_modules/' --exclude='.test-data/' --exclude='runs/*' --exclude='brand/BRAND-BRAIN.md' --exclude='brand/brand.json' --exclude='learnings/LEARNINGS.md' "$SRC/" "$DEST/"
+if [ -z "$NODE" ]; then echo 'Node.js 20.9 or later is required.' >&2; exit 1; fi
+NODE_VERSION=$("$NODE" -p 'process.versions.node')
+if ! "$NODE" -e 'const [a,b]=process.versions.node.split(".").map(Number); if(a<20||(a===20&&b<9)) process.exit(1)'; then echo "Node.js 20.9 or later is required. Found $NODE_VERSION." >&2; exit 1; fi
+
+if [ "$CHECK" -eq 1 ]; then
+  CHECK_ROOT=$SRC
+  [ -f "$DEST/scripts/studio.mjs" ] && CHECK_ROOT=$DEST
+  REQUIRED_STATUS=0
+  for file in README.md DIRECTOR.md INSTALL-PROMPT.md AGENTS.md VERSION CHANGELOG.md package.json scripts/studio.mjs scripts/carousel.mjs scripts/install-files.mjs skill/SKILL.md docs/DATA-FORMATS.md brand/BRAND-BRAIN.template.md brand/BRAND-BRAIN.example.md brand/brand.example.json tools/hooklab/SKILL.md tools/ad-images/scripts/render.mjs tools/carousel-builder/lib/slide-renderer.js tools/heygen-ad-videos/scripts/heygen.mjs tools/video-editor/index.js agents/content-checker.md agents/content-copywriter.md agents/content-carousel-maker.md agents/content-director.md agents/content-hook-writer.md agents/content-image-maker.md agents/content-video-editor.md agents/content-video-maker.md; do
+    if [ ! -f "$CHECK_ROOT/$file" ]; then echo "Required file: missing $file"; REQUIRED_STATUS=1; fi
+  done
+  set +e
+  CONTENT_STUDIO_DIR="$CHECK_ROOT" "$NODE" "$CHECK_ROOT/scripts/studio.mjs" self-test --no-render
+  SELF_STATUS=$?
+  set -e
+  [ "$REQUIRED_STATUS" -eq 0 ] && [ "$SELF_STATUS" -eq 0 ]
+  exit $?
 fi
-mkdir -p "$DEST/learnings"
-if [ ! -f "$DEST/learnings/LEARNINGS.md" ]; then cp "$SRC/learnings/LEARNINGS.template.md" "$DEST/learnings/LEARNINGS.md"; fi
-mkdir -p "$HOME_DIR/.claude/skills" "$HOME_DIR/.claude/agents"
-rsync -a "$DEST/skill/" "$HOME_DIR/.claude/skills/content-studio/"
-rsync -a "$DEST/tools/ad-images/" "$HOME_DIR/.claude/skills/ad-images/"
-rsync -a "$DEST/tools/heygen-ad-videos/" "$HOME_DIR/.claude/skills/heygen-ad-videos/"
-HOOK="$HOME_DIR/.claude/skills/hooklab"
-mkdir -p "$HOOK"
-rsync -a --delete --exclude='/personal/' "$DEST/tools/hooklab/" "$HOOK/"
-mkdir -p "$HOOK/personal"
-rsync -a --ignore-existing "$DEST/tools/hooklab/personal/" "$HOOK/personal/"
-for file in "$DEST"/agents/*.md; do rsync -a "$file" "$HOME_DIR/.claude/agents/"; done
-$NODE - "$DEST" "$HOME_DIR/.claude/skills/content-studio" "$HOME_DIR/.claude/skills/ad-images" "$HOME_DIR/.claude/skills/heygen-ad-videos" "$HOOK" "$HOME_DIR/.claude/agents" <<'NODE'
-const fs=require('node:fs'),path=require('node:path');const root=process.argv[2];function walk(d){for(const e of fs.readdirSync(d,{withFileTypes:true})){const p=path.join(d,e.name);if(e.isDirectory())walk(p);else if(e.isFile()&&p.endsWith('.md')){const s=fs.readFileSync(p,'utf8');const n=s.replaceAll('CONTENT_STUDIO_DIR',root);if(n!==s)fs.writeFileSync(p,n);}}}const roots=[root,process.argv[3],process.argv[4],process.argv[5],process.argv[6],process.argv[7]];for(const base of roots)if(base&&fs.existsSync(base))walk(base);
-NODE
-if [ ! -d "$DEST/tools/carousel-builder/node_modules" ]; then (cd "$DEST/tools/carousel-builder" && npm install); fi
-CONTENT_STUDIO_DIR="$DEST" "$NODE" "$DEST/scripts/studio.mjs" self-test
+
+if ! { command -v google-chrome >/dev/null 2>&1 || command -v google-chrome-stable >/dev/null 2>&1 || command -v microsoft-edge >/dev/null 2>&1 || { command -v open >/dev/null 2>&1 && { open -Ra 'Google Chrome' >/dev/null 2>&1 || open -Ra 'Microsoft Edge' >/dev/null 2>&1; }; } || [ -x "$HOME_DIR/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ] || [ -x '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' ] || [ -x '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge' ]; }; then echo 'Install Google Chrome or Microsoft Edge, then run this installer again.' >&2; exit 1; fi
+mkdir -p "$DEST" "$HOME_DIR"
+"$NODE" "$SRC/scripts/install-files.mjs" "$SRC" "$DEST" "$HOME_DIR"
+if [ "$NO_NPM" != 1 ] && [ ! -d "$DEST/tools/carousel-builder/node_modules" ]; then (cd "$DEST/tools/carousel-builder" && npm install); fi
+CONTENT_STUDIO_DIR="$DEST" "$NODE" "$DEST/scripts/studio.mjs" self-test --no-render

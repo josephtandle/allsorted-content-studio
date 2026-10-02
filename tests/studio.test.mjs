@@ -5,38 +5,41 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const node=process.execPath;
+const node='/opt/homebrew/bin/node';
+const require=createRequire(import.meta.url);
 function exec(args,env={}){return spawnSync(node,args,{cwd:root,encoding:'utf8',env:{...process.env,CONTENT_STUDIO_DIR:root,...env}})}
+function makeBrandStudio(){const dir=path.join(root,'.test-data/brand-studio');fs.rmSync(dir,{recursive:true,force:true});fs.mkdirSync(path.join(dir,'brand'),{recursive:true});fs.symlinkSync(path.join(root,'tools'),path.join(dir,'tools'),'dir');for(const file of ['BRAND-BRAIN.example.md','BRAND-BRAIN.template.md','brand.example.json'])fs.copyFileSync(path.join(root,'brand',file),path.join(dir,'brand',file));return dir;}
 function walk(dir){return fs.readdirSync(dir,{withFileTypes:true}).filter(e=>e.name!=='.git'&&e.name!=='node_modules').flatMap(e=>{const p=path.join(dir,e.name);return e.isDirectory()?walk(p):[p]})}
+function snapshot(dir){if(!fs.existsSync(dir))return {};return Object.fromEntries(walk(dir).map(file=>[path.relative(dir,file),`${createHash('sha256').update(fs.readFileSync(file)).digest('hex')}:${fs.statSync(file).mtimeMs}`]));}
 test('all eight agents inherit the host model and include no model pin',()=>{const files=fs.readdirSync(path.join(root,'agents')).filter(f=>f.endsWith('.md'));assert.equal(files.length,8);for(const f of files){const text=fs.readFileSync(path.join(root,'agents',f),'utf8');assert.match(text,/^model: inherit$/m,f);for(const token of ['fa'+'ble','op'+'us','son'+'net','hai'+'ku','g'+'pt'])assert.doesNotMatch(text,new RegExp(token,'i'),f)}});
 test('the five packaged tools include the pinned Video Editor module',()=>{for(const [name,file] of [['HookLab','tools/hooklab/SKILL.md'],['Ad Images','tools/ad-images/scripts/render.mjs'],['Carousel Builder','tools/carousel-builder/lib/slide-renderer.js'],['HeyGen Ad Videos','tools/heygen-ad-videos/scripts/heygen.mjs'],['Video Editor','tools/video-editor/index.js']])assert.ok(fs.existsSync(path.join(root,file)),`${name} is packaged`);const pin=fs.readFileSync(path.join(root,'tools/video-editor/PINNED'),'utf8');assert.match(pin,/version: 1\.2\.1/);assert.match(pin,/commit: 8ce7d20/);assert.match(pin,/date: 2026-10-02/)});
 test('self-test names all five tools and treats missing ffmpeg as optional',()=>{const result=exec(['scripts/studio.mjs','self-test'],{FFMPEG_BIN:'/definitely-not-installed'});assert.equal(result.status,0,result.stderr||result.stdout);for(const name of ['Node: working','Chrome/Edge: working','HookLab: working','Ad Images: working','Carousel Builder: working','HeyGen Ad Videos: working','Video Editor: ffmpeg not installed (optional)'])assert.ok(result.stdout.includes(name),`${name} appears in self-test`)});
-test('brand source generates the shared JSON consumed by tools',()=>{const md=`# Brand Brain\n\n- Brand name: Sunrise Yoga Studio\n- Offer: Beginner yoga classes\n- Specific audience: Adults trying yoga\n- Current situation: Curious and cautious\n- Problem in their words: Unsure how to start\n- Desired supported outcome: Learn gentle movements\n- Approved facts and proof: none\n- Testimonials with permission: none\n- Claims to avoid: guaranteed health outcomes\n- Voice: Calm and practical\n- Background color: #FFF8EC\n- Ink color: #25443B\n- Accent color: #E98256\n- Display font: Georgia\n- Body font: Arial\n- Image direction: Morning light\n- CTA wording: See the class schedule\n`;fs.writeFileSync(path.join(root,'brand/BRAND-BRAIN.md'),md);try{const result=exec(['scripts/studio.mjs','brand-json']);assert.equal(result.status,0,result.stderr||result.stdout);const brand=JSON.parse(fs.readFileSync(path.join(root,'brand/brand.json'),'utf8'));assert.equal(brand.brandName,'Sunrise Yoga Studio');assert.equal(brand.colors.accent,'#E98256');assert.equal(brand.cta,'See the class schedule');}finally{fs.rmSync(path.join(root,'brand/BRAND-BRAIN.md'),{force:true});fs.rmSync(path.join(root,'brand/brand.json'),{force:true});}});
+test('brand source generates the shared JSON consumed by tools',()=>{const studio=makeBrandStudio(),md=`# Brand Brain\n\n- Brand name: Sunrise Yoga Studio\n- Offer: Beginner yoga classes\n- Specific audience: Adults trying yoga\n- Current situation: Curious and cautious\n- Problem in their words: Unsure how to start\n- Desired supported outcome: Learn gentle movements\n- Approved facts and proof: none\n- Testimonials with permission: none\n- Claims to avoid: guaranteed health outcomes\n- Voice: Calm and practical\n- Background color: #FFF8EC\n- Ink color: #25443B\n- Accent color: #E98256\n- Default theme: light\n- Display font: Georgia\n- Body font: Arial\n- Image direction: Morning light\n- CTA wording: See the class schedule\n`;fs.writeFileSync(path.join(studio,'brand/BRAND-BRAIN.md'),md);const result=exec(['scripts/studio.mjs','brand-json'],{CONTENT_STUDIO_DIR:studio});assert.equal(result.status,0,result.stderr||result.stdout);const brand=JSON.parse(fs.readFileSync(path.join(studio,'brand/brand.json'),'utf8'));assert.equal(brand.brandName,'Sunrise Yoga Studio');assert.equal(brand.theme,'light');assert.equal(brand.colors.canvas,'#FFF8EC');assert.equal(brand.colors.accent,'#E98256');assert.equal(brand.cta,'See the class schedule');});
 
 test('use-example-brand creates matching example files and refuses to overwrite them',()=>{
-  const md=path.join(root,'brand/BRAND-BRAIN.md'),json=path.join(root,'brand/brand.json');
+  const studio=makeBrandStudio(),md=path.join(studio,'brand/BRAND-BRAIN.md'),json=path.join(studio,'brand/brand.json');
   fs.rmSync(md,{force:true});fs.rmSync(json,{force:true});
   try {
-    const made=exec(['scripts/studio.mjs','use-example-brand']);assert.equal(made.status,0,made.stderr||made.stdout);
-    const brand=JSON.parse(fs.readFileSync(json,'utf8'));const example=JSON.parse(fs.readFileSync(path.join(root,'brand/brand.example.json'),'utf8'));
-    for(const key of ['brandName','offer','priceOrTerms','destination','audience','problem','supportedOutcome','voice','colors','fonts','imageDirection','primaryAction','cta'])assert.deepEqual(brand[key],example[key],`${key} is consistent`);
-    const before=fs.readFileSync(md,'utf8');const refused=exec(['scripts/studio.mjs','use-example-brand']);assert.notEqual(refused.status,0);assert.equal(fs.readFileSync(md,'utf8'),before);
+    const made=exec(['scripts/studio.mjs','use-example-brand'],{CONTENT_STUDIO_DIR:studio});assert.equal(made.status,0,made.stderr||made.stdout);
+    const brand=JSON.parse(fs.readFileSync(json,'utf8'));const example=JSON.parse(fs.readFileSync(path.join(studio,'brand/brand.example.json'),'utf8'));
+    for(const key of ['brandName','offer','priceOrTerms','destination','audience','problem','supportedOutcome','voice','theme','colors','fonts','imageDirection','primaryAction','cta'])assert.deepEqual(brand[key],example[key],`${key} is consistent`);
+    const before=fs.readFileSync(md,'utf8');const refused=exec(['scripts/studio.mjs','use-example-brand'],{CONTENT_STUDIO_DIR:studio});assert.notEqual(refused.status,0);assert.equal(fs.readFileSync(md,'utf8'),before);
   } finally {fs.rmSync(md,{force:true});fs.rmSync(json,{force:true});}
 });
 test('source files contain no private paths, prohibited identity markers, or em dashes',()=>{for(const f of walk(root)){if(f.startsWith(path.join(root,'.test-data'))||/\.png$|\.jpg$|\.webp$/.test(f)||f.includes(`${path.sep}node_modules${path.sep}`))continue;const s=fs.readFileSync(f,'utf8');assert.doesNotMatch(s,/\/(?:Users|home)\//,path.relative(root,f));const blocked=[['my','os'].join(''),['new','york','1'].join(''),['master','minds','hq'].join(''),['joe','@'].join(''),['illy','@'].join(''),['@','gmail'].join('')];for(const token of blocked)assert.equal(s.toLowerCase().includes(token.toLowerCase()),false,path.relative(root,f));const blockedPatterns=[new RegExp(['act','_','\\d+'].join(''),'i'),new RegExp(['E','AA','[A-Za-z0-9_-]{8,}'].join(''),'i'),new RegExp(['sk-','[A-Za-z0-9_-]{12,}'].join(''),'i')];for(const pattern of blockedPatterns)assert.equal(pattern.test(s),false,path.relative(root,f));assert.equal(s.includes(String.fromCharCode(0x2014)),false,path.relative(root,f));if(f.endsWith('.md'))assert.equal(s.includes(String.fromCharCode(0x2014)),false,path.relative(root,f));const owner=['joseph','tandle'].join('');if(new RegExp(owner,'i').test(s)){const allowed=[`https://github.com/${owner}/allsorted-content-studio`,`https://github.com/${owner}/hooklab`];assert.equal(allowed.some(url=>s.includes(url)),true,path.relative(root,f));}}});
-test('install twice preserves source and installed file bytes, brand, runs, and learnings', () => {
-  const home = path.join(root, '.test-data', 'install-home');
+test('install twice into a spaced path with --no-npm leaves zero changed files or backups', () => {
+  const scratch=fs.mkdtempSync(path.join(root,'.test-data/install-space-')),home = path.join(scratch, 'home dir'), dest = path.join(home, 'All Sorted Studio');
   fs.mkdirSync(home, { recursive: true });
   const hash = (file) => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
   try {
     const pre = path.join(home, '.claude/skills/hooklab/personal');
     fs.mkdirSync(pre, { recursive: true });
     fs.writeFileSync(path.join(pre, 'private-notes.md'), 'preserve this personal file');
-    const args = ['install.sh', '--home', home];
-    const first = spawnSync('sh', args, { cwd: root, encoding: 'utf8' });
+    const args = ['install.sh', '--home', home, '--dir', dest, '--no-npm'];
+    const first = spawnSync('sh', args, { cwd: root, encoding: 'utf8', env:{...process.env,PATH:`/opt/homebrew/bin:${process.env.PATH}`} });
     assert.equal(first.status, 0, first.stderr || first.stdout);
-    const dest = path.join(home, 'allsorted-content-studio');
     fs.mkdirSync(path.join(dest, 'brand'), { recursive: true });
     fs.mkdirSync(path.join(dest, 'runs', 'keep'), { recursive: true });
     fs.writeFileSync(path.join(dest, 'brand/BRAND-BRAIN.md'), 'keep-brand');
@@ -56,43 +59,103 @@ test('install twice preserves source and installed file bytes, brand, runs, and 
     assert.ok(fs.existsSync(path.join(dest,'learnings/LEARNINGS.md')),'installer creates learnings from the shipped template');
     assert.equal(fs.readFileSync(path.join(pre, 'private-notes.md'), 'utf8'), 'preserve this personal file');
     assert.ok(fs.existsSync(path.join(pre, 'my-brand-voice.md')));
-    const second = spawnSync('sh', args, { cwd: root, encoding: 'utf8' });
+    const checker = fs.readFileSync(path.join(home,'.claude/agents/content-checker.md'),'utf8');
+    const checkCommand = checker.split('\n').find(line => line.includes('self-test --no-render'));
+    assert.ok(checkCommand,'installed checker contains the self-test command');
+    assert.equal(checkCommand.includes('CONTENT_STUDIO_DIR'),false,'installed command has the concrete spaced install path');
+    const checkerRun=spawnSync('/bin/sh',['-c',checkCommand],{cwd:root,encoding:'utf8',env:{...process.env,PATH:`/opt/homebrew/bin:${process.env.PATH}`,CONTENT_STUDIO_DIR:dest}});
+    assert.equal(checkerRun.status,0,checkerRun.stderr||checkerRun.stdout);
+    assert.match(checkerRun.stdout,/Carousel Builder: not installed yet \(run npm install in tools\/carousel-builder\)/);
+    const beforeSecond=snapshot(home);
+    const backupsBefore=walk(home).filter(file=>file.includes('.backup-')).length;
+    const second = spawnSync('sh', args, { cwd: root, encoding: 'utf8', env:{...process.env,PATH:`/opt/homebrew/bin:${process.env.PATH}`} });
     assert.equal(second.status, 0, second.stderr || second.stdout);
     assert.deepEqual([target, installedAgent, installedSkill].map(hash), installedHashes);
     assert.deepEqual(preserved.map(hash), preservedHashes);
+    assert.deepEqual(snapshot(home),beforeSecond,'second install changes no file contents or timestamps');
+    assert.equal(walk(home).filter(file=>file.includes('.backup-')).length,backupsBefore,'identical install creates no backups');
   } finally {
-    fs.rmSync(home, { recursive: true, force: true });
+    fs.rmSync(scratch, { recursive: true, force: true });
   }
 });
+test('customized hooklab skill and content director are backed up before install',()=>{
+  const scratch=fs.mkdtempSync(path.join(root,'.test-data/install-custom-')),home=path.join(scratch,'customized home');
+  const hook=path.join(home,'.claude/skills/hooklab'),agents=path.join(home,'.claude/agents');fs.mkdirSync(hook,{recursive:true});fs.mkdirSync(agents,{recursive:true});
+  const hookFile=path.join(hook,'SKILL.md'),agentFile=path.join(agents,'content-director.md'),hookOriginal='member hooklab customization\n',agentOriginal='member director customization\n';fs.writeFileSync(hookFile,hookOriginal);fs.writeFileSync(agentFile,agentOriginal);
+  try{const result=spawnSync('sh',['install.sh','--home',home,'--dir',path.join(home,'Studio'),'--no-npm'],{cwd:root,encoding:'utf8',env:{...process.env,PATH:`/opt/homebrew/bin:${process.env.PATH}`}});assert.equal(result.status,0,result.stderr||result.stdout);
+    const backupLines=result.stdout.split('\n').filter(line=>line.startsWith('Backed up your existing '));assert.equal(backupLines.length,2,result.stdout);
+    assert.deepEqual(backupLines.map(line=>line.match(/^Backed up your existing (.+?) to (.+)$/)?.[1]).sort(),['content-director.md','hooklab'].sort());
+    for(const [name,original] of [['hooklab',hookOriginal],['content-director.md',agentOriginal]]){const saved=backupLines.map(line=>line.match(/^Backed up your existing .+ to (.+)$/)?.[1]).find(file=>file&&file.includes(`/${name}.backup-`));assert.ok(saved,`backup path for ${name}`);const backupFile=name==='hooklab'?path.join(saved,'SKILL.md'):saved;assert.equal(fs.readFileSync(backupFile,'utf8'),original);}
+    const after=snapshot(home);const second=spawnSync('sh',['install.sh','--home',home,'--dir',path.join(home,'Studio'),'--no-npm'],{cwd:root,encoding:'utf8',env:{...process.env,PATH:`/opt/homebrew/bin:${process.env.PATH}`}});assert.equal(second.status,0,second.stderr||second.stdout);assert.equal(second.stdout.includes('Backed up your existing'),false,second.stdout);assert.deepEqual(snapshot(home),after);
+  }finally{fs.rmSync(scratch,{recursive:true,force:true});}
+});
+test('ALLSORTED_NO_NPM=1 skips npm install',()=>{
+  const scratch=fs.mkdtempSync(path.join(root,'.test-data/install-env-no-npm-')),home=path.join(scratch,'home'),dest=path.join(home,'Studio');
+  try{const result=spawnSync('sh',['install.sh','--home',home,'--dir',dest],{cwd:root,encoding:'utf8',env:{...process.env,PATH:`/opt/homebrew/bin:${process.env.PATH}`,ALLSORTED_NO_NPM:'1'}});assert.equal(result.status,0,result.stderr||result.stdout);assert.equal(fs.existsSync(path.join(dest,'tools/carousel-builder/node_modules')),false);assert.match(result.stdout,/Carousel Builder: not installed yet \(run npm install in tools\/carousel-builder\)/);}
+  finally{fs.rmSync(scratch,{recursive:true,force:true});}
+});
+test('installed scripts resolve a spaced copy without CONTENT_STUDIO_DIR and render both formats',async()=>{
+  const scratch=path.join(root,'.test-data','installed space regression'),home=path.join(scratch,'home dir'),dest=path.join(home,'All Sorted Studio'),run=path.join(scratch,'creative run');
+  fs.rmSync(scratch,{recursive:true,force:true});fs.mkdirSync(run,{recursive:true});
+  try{
+    const installed=spawnSync('sh',['install.sh','--home',home,'--dir',dest,'--no-npm'],{cwd:root,encoding:'utf8',env:{...process.env,PATH:`/opt/homebrew/bin:${process.env.PATH}`}});assert.equal(installed.status,0,installed.stderr||installed.stdout);
+    fs.symlinkSync(path.join(root,'tools/carousel-builder/node_modules'),path.join(dest,'tools/carousel-builder/node_modules'),'dir');
+    fs.writeFileSync(path.join(run,'brief.md'),'# Space path proof');
+    const brand=JSON.parse(fs.readFileSync(path.join(dest,'brand/brand.example.json'),'utf8'));
+    fs.writeFileSync(path.join(dest,'brand/brand.json'),JSON.stringify(brand));
+    const imageData=path.join(run,'image.json');fs.writeFileSync(imageData,JSON.stringify({brand,brandName:brand.brandName,hook:'A calmer start',headline:'A calmer start',body:'A welcoming first class.',cta:'View class times'}));
+    const image=path.join(run,'image.png');const env={...process.env,PATH:`/opt/homebrew/bin:${process.env.PATH}`};delete env.CONTENT_STUDIO_DIR;
+    const rendered=spawnSync(node,[path.join(dest,'tools/ad-images/scripts/render.mjs'),'--template',path.join(dest,'tools/ad-images/templates/offer-card.html'),'--data',imageData,'--out',image,'--width','1080','--height','1080'],{cwd:root,encoding:'utf8',env});assert.equal(rendered.status,0,rendered.stderr||rendered.stdout);assert.ok(fs.statSync(image).size>1000);
+    const carouselData=path.join(run,'carousel-data.json');fs.writeFileSync(carouselData,JSON.stringify({title:'Spaced Install',preset:'square',slides:[{eyebrow:'ONE',headline:'Start gently',body:'A simple first step.'},{eyebrow:'TWO',headline:'',body:'An empty headline is intentional.',cta:'View class times'}]}));
+    const carousel=spawnSync(node,[path.join(dest,'scripts/carousel.mjs'),run],{cwd:root,encoding:'utf8',env});assert.equal(carousel.status,0,carousel.stderr||carousel.stdout);
+    const slide=path.join(run,'carousel/spaced-install_01_carousel_square.png');assert.ok(fs.statSync(slide).size>1000);
+    const sharp=require(path.join(root,'tools/carousel-builder/node_modules/sharp'));
+    const pixel=async file=>[...await sharp(file).extract({left:30,top:30,width:1,height:1}).removeAlpha().raw().toBuffer()];
+    assert.deepEqual(await pixel(image),await pixel(slide),'default carousel canvas matches offer-card dark background');
+    assert.equal(JSON.parse(fs.readFileSync(path.join(run,'carousel/manifest.json'),'utf8')).files.length,2);
+    const learningFile=path.join(dest,'learnings/LEARNINGS.md');fs.rmSync(learningFile,{force:true});const noEnvCheck=spawnSync(node,[path.join(dest,'scripts/studio.mjs'),'check',path.join(run,'missing-manifests')],{cwd:root,encoding:'utf8',env});assert.notEqual(noEnvCheck.status,0);assert.equal(fs.readFileSync(learningFile,'utf8'),fs.readFileSync(path.join(root,'learnings/LEARNINGS.template.md'),'utf8'));
+  }finally{fs.rmSync(scratch,{recursive:true,force:true});}
+});
+test('--check prints the no-render self-test and writes nothing under the selected home',()=>{
+  const scratch=fs.mkdtempSync(path.join(root,'.test-data/install-check-')),home=path.join(scratch,'check home'),dest=path.join(home,'Studio');fs.mkdirSync(path.join(home,'sentinel'),{recursive:true});fs.writeFileSync(path.join(home,'sentinel/keep.txt'),'unchanged');
+  try{const install=spawnSync('sh',['install.sh','--home',home,'--dir',dest,'--no-npm'],{cwd:root,encoding:'utf8',env:{...process.env,PATH:`/opt/homebrew/bin:${process.env.PATH}`}});assert.equal(install.status,0,install.stderr||install.stdout);const before=snapshot(home);const result=spawnSync('sh',['install.sh','--check','--home',home,'--dir',dest],{cwd:root,encoding:'utf8',env:{...process.env,PATH:`/opt/homebrew/bin:${process.env.PATH}`}});assert.equal(result.status,0,result.stderr||result.stdout);assert.deepEqual(snapshot(home),before);assert.match(result.stdout,/^Node: working$/m);assert.match(result.stdout,/^Chrome\/Edge: working$/m);assert.match(result.stdout,/^Carousel Builder: not installed yet \(run npm install in tools\/carousel-builder\)$/m);}
+  finally{fs.rmSync(scratch,{recursive:true,force:true});}
+});
 test('mixed offline run renders one button image and a three-slide button carousel, then creates complete handoff',async()=>{
-  const run=path.join(root,'examples/proof-run');
+  const run=path.join(root,'.test-data/mixed-proof-run');fs.rmSync(run,{recursive:true,force:true});fs.mkdirSync(run,{recursive:true});
   fs.rmSync(path.join(run,'images'),{recursive:true,force:true});fs.rmSync(path.join(run,'carousel'),{recursive:true,force:true});fs.writeFileSync(path.join(run,'run-log.jsonl'),'');
   fs.mkdirSync(path.join(run,'images'),{recursive:true});fs.mkdirSync(path.join(run,'carousel'),{recursive:true});fs.mkdirSync(path.join(run,'copy'),{recursive:true});
   fs.writeFileSync(path.join(run,'brief.md'),'# Sunrise Yoga Studio\n\nFictional example. Beginner-friendly yoga classes.\n');
-  const setup=exec(['scripts/studio.mjs','use-example-brand']);assert.equal(setup.status,0,setup.stderr||setup.stdout);
   const brand=JSON.parse(fs.readFileSync(path.join(root,'brand/brand.example.json'),'utf8'));
   const imageData={brandName:brand.brandName,brand,hook:'A calmer start begins here',headline:'A calmer start begins here',body:'Try one gentle beginner class this week.',cta:brand.cta};
   const dataPath=path.join(run,'image-data.json');fs.writeFileSync(dataPath,JSON.stringify(imageData));
   const imagePath=path.join(run,'images/sunrise-yoga_01_offer-card_square.png');
   const render=exec(['tools/ad-images/scripts/render.mjs','--template','tools/ad-images/templates/offer-card.html','--data',dataPath,'--out',imagePath,'--width','1080','--height','1080','--manifest',path.join(run,'images/manifest.json')]);assert.equal(render.status,0,render.stderr||render.stdout);
-  const carouselData={title:'sunrise-yoga',preset:'square',palette:{background:brand.colors.background,ink:brand.colors.ink,accent:brand.colors.accent,fonts:brand.fonts},slides:[
+  const imageData2={...imageData,hook:'Find your first class',headline:'Find your first class',body:'Explore a calm introduction to yoga.'};const dataPath2=path.join(run,'image-data-2.json');fs.writeFileSync(dataPath2,JSON.stringify(imageData2));const imagePath2=path.join(run,'images/sunrise-yoga_02_offer-card_square.png');const render2=exec(['tools/ad-images/scripts/render.mjs','--template','tools/ad-images/templates/offer-card.html','--data',dataPath2,'--out',imagePath2,'--width','1080','--height','1080','--manifest',path.join(run,'images/manifest.json')]);assert.equal(render2.status,0,render2.stderr||render2.stdout);
+  const carouselData={title:'sunrise-yoga',preset:'square',theme:'dark',slides:[
     {eyebrow:'WHAT GETS IN THE WAY',headline:'Starting yoga can feel unfamiliar',body:'A first class is easier when you know what to expect.'},
     {eyebrow:'A BETTER WAY',headline:'Begin with a gentle class',body:'A small-group introduction gives you room to learn.'},
     {eyebrow:'THE OUTCOME',headline:'Learn a few new movements',body:'Try one welcoming class at your own pace.',cta:brand.cta}
   ]};fs.writeFileSync(path.join(run,'carousel-data.json'),JSON.stringify(carouselData));
-  fs.writeFileSync(path.join(run,'copy/ads.json'),JSON.stringify({primaryText:'A welcoming first yoga class, at your own pace.',headline:'A calmer start',callToAction:'Book a class'}));
+  fs.writeFileSync(path.join(run,'copy/ads.json'),JSON.stringify({ads:[
+    {creative:'images/sunrise-yoga_01_offer-card_square.png',headline:'A calmer start',primary_text:'A welcoming first yoga class, at your own pace.',link_description:'View class times',cta_type:'BOOK_NOW',button_text:'See the beginner class schedule'},
+    {creative:'images/sunrise-yoga_02_offer-card_square.png',headline:'Find your first class',primary_text:'Explore a calm introduction to yoga.',link_description:'See class details',cta_type:'SIGN_UP',button_text:'Join a class'},
+    {creative:'carousel/carousel-spec.json',primary_text:'Take your first step with a welcoming class.',link_description:'Browse beginner sessions',cta_type:'GET_OFFER',button_text:'See class options'}
+  ]}));
   const car=exec(['scripts/carousel.mjs',run]);assert.equal(car.status,0,car.stderr||car.stdout);
+  const carRefused=exec(['scripts/carousel.mjs',run]);assert.notEqual(carRefused.status,0);assert.match(carRefused.stderr,/Use --overwrite to replace it/);
+  const carOverwrite=exec(['scripts/carousel.mjs',run,'--overwrite']);assert.equal(carOverwrite.status,0,carOverwrite.stderr||carOverwrite.stdout);
   const carouselManifest=JSON.parse(fs.readFileSync(path.join(run,'carousel/manifest.json'),'utf8'));assert.deepEqual(carouselManifest.files.map(file=>file.showCta),[false,false,true]);assert.deepEqual(carouselManifest.files.map(file=>Boolean(file.measurements.cta)),[false,false,true]);
   const check=exec(['scripts/studio.mjs','check',run]);assert.equal(check.status,0,check.stderr||check.stdout);
+  assert.match(check.stdout,/^PASS .*sunrise-yoga_01_offer-card_square\.png: file exists - ok/m);assert.match(check.stdout,/^PASS .*sunrise-yoga_01_offer-card_square\.png: headline, body, and visible text meet minimum sizes - ok/m);
   const sheet=exec(['scripts/studio.mjs','contact-sheet',run]);assert.equal(sheet.status,0,sheet.stderr||sheet.stdout);
   const handoff=exec(['scripts/studio.mjs','handoff',run]);assert.equal(handoff.status,0,handoff.stderr||handoff.stdout);
   const spec=JSON.parse(fs.readFileSync(path.join(run,'handoff.json'),'utf8'));
-  assert.equal(spec.status,'PAUSED');assert.equal(spec.ads.length,2);assert.equal(spec.ads[0].type,'carousel');assert.equal(spec.ads[1].type,'image');
-  assert.equal(spec.ads[0].cards.length,3);assert.equal(spec.ads[0].child_attachments.length,3);assert.equal(spec.ads[0].callToAction,'BOOK_NOW');assert.equal(spec.ads[1].callToAction,'BOOK_NOW');
-  assert.equal(spec.ads[0].status,'PAUSED');assert.equal(spec.ads[1].status,'PAUSED');assert.equal(spec.ads[0].message,'FILL_IN_PRIMARY_MESSAGE');assert.equal(spec.ads[1].message,'FILL_IN_PRIMARY_MESSAGE');assert.ok(spec.ads[1].image.endsWith('sunrise-yoga_01_offer-card_square.png'));
+  assert.equal(spec.status,'PAUSED');assert.equal(spec.ads.length,3);assert.equal(spec.ads[0].type,'carousel');assert.deepEqual(spec.ads.slice(1).map(ad=>ad.type),['image','image']);
+  assert.equal(spec.ads[0].cards.length,3);assert.equal(spec.ads[0].child_attachments.length,3);assert.equal(spec.ads[0].callToAction,'GET_OFFER');assert.equal(spec.ads[0].message,'Take your first step with a welcoming class.');
+  const byImage=Object.fromEntries(spec.ads.filter(ad=>ad.type==='image').map(ad=>[path.basename(ad.image),ad]));assert.equal(byImage['sunrise-yoga_01_offer-card_square.png'].callToAction,'BOOK_NOW');assert.equal(byImage['sunrise-yoga_01_offer-card_square.png'].headline,'A calmer start');assert.equal(byImage['sunrise-yoga_01_offer-card_square.png'].primary_text,'A welcoming first yoga class, at your own pace.');assert.equal(byImage['sunrise-yoga_02_offer-card_square.png'].callToAction,'SIGN_UP');assert.equal(byImage['sunrise-yoga_02_offer-card_square.png'].headline,'Find your first class');assert.ok(spec.ads.every(ad=>ad.status==='PAUSED'));
   assert.equal(spec.blanks.pageId,'FILL_IN_META_PAGE_ID');assert.equal(spec.blanks.message,'FILL_IN_PRIMARY_MESSAGE');assert.equal(spec.blanks.link,'FILL_IN_LANDING_PAGE_URL');
   for(const f of ['contact-sheet.png','handoff.json','run-log.jsonl'])assert.ok(fs.existsSync(path.join(run,f)),`${f} exists`);
   const log=fs.readFileSync(path.join(run,'run-log.jsonl'),'utf8').trim().split('\n').at(-1);assert.equal(JSON.parse(log).qaErrors,0);assert.ok(fs.statSync(path.join(run,'contact-sheet.png')).size>10000);
-  fs.rmSync(path.join(root,'brand/BRAND-BRAIN.md'),{force:true});fs.rmSync(path.join(root,'brand/brand.json'),{force:true});
-  try{fs.rmSync(path.join(root,'.test-data'),{recursive:true});}catch{}
+  const copyPath=path.join(run,'copy/ads.json');const saved=fs.readFileSync(copyPath,'utf8');const missing=JSON.parse(saved);missing.ads=missing.ads.filter(ad=>!ad.creative.includes('02_offer-card'));fs.writeFileSync(copyPath,JSON.stringify(missing));const missingHandoff=exec(['scripts/studio.mjs','handoff',run]);assert.equal(missingHandoff.status,0,missingHandoff.stderr||missingHandoff.stdout);assert.match(missingHandoff.stderr,/WARNING: Find your first class .* has no copy entry/);const missingAd=JSON.parse(fs.readFileSync(path.join(run,'handoff.json'),'utf8')).ads.find(ad=>ad.image?.includes('02_offer-card'));assert.equal(missingAd.headline,'FILL_IN_HEADLINE');assert.equal(missingAd.message,'FILL_IN_PRIMARY_MESSAGE');const aliasProbe=JSON.parse(saved);delete aliasProbe.ads[0].cta_type;fs.writeFileSync(copyPath,JSON.stringify(aliasProbe));const aliasHandoff=exec(['scripts/studio.mjs','handoff',run]);assert.equal(aliasHandoff.status,0,aliasHandoff.stderr||aliasHandoff.stdout);assert.match(aliasHandoff.stderr,/WARNING: A calmer start begins here has no cta_type/);assert.equal(JSON.parse(fs.readFileSync(path.join(run,'handoff.json'),'utf8')).ads.find(ad=>ad.image?.includes('01_offer-card')).callToAction,'LEARN_MORE');fs.writeFileSync(copyPath,saved);assert.equal(exec(['scripts/studio.mjs','handoff',run]).status,0);if(process.env.KEEP_STUDIO_TEST_OUTPUT!=='1')fs.rmSync(run,{recursive:true,force:true});
 });

@@ -19,10 +19,12 @@
     "weight-loss promises"
   ],
   "voice": "Warm, calm, practical, welcoming, and specific",
+  "theme": "dark",
   "colors": {
-    "background": "#FFF8EC",
+    "canvas": "#FFF8EC",
     "ink": "#25443B",
-    "accent": "#E98256"
+    "accent": "#E98256",
+    "darkVariant": { "canvas": "#25443B", "ink": "#FFF8EC", "accent": "#E98256" }
   },
   "fonts": {
     "display": "Georgia",

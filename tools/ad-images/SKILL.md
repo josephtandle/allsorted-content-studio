@@ -70,7 +70,7 @@ Supported sizes:
 - `feed`: 1080 × 1350, 4:5.
 - `story`: 1080 × 1920, 9:16. Keep every text box inside the central safe area, below the top 14% and above the bottom 20%.
 
-For a carousel, make 2 to 10 square slides. Give each slide one job and keep the visual system consistent. Do not shrink copy until it becomes hard to read. Use `creatives/batch.json` as the batch input: an object with `offer`, `format`, `ratio`, and 5 or 6 `variations`, each containing `hookNumber`, `template`, `hook`, `headline`, `body`, `cta`, and optional `colors`. Run one command:
+For a carousel, make 2 to 10 square slides. Give each slide one job and keep the visual system consistent. Do not shrink copy until it becomes hard to read. Use `creatives/batch.json` as the batch input: an object with `offer`, `format`, `ratio`, and 5 or 6 `variations`, each containing `hookNumber`, `template`, `hook`, `body`, `cta`, and optional `colors`. Run one command:
 
 ```text
 node "{{SKILL_DIR}}/scripts/batch.mjs" creatives/batch.json

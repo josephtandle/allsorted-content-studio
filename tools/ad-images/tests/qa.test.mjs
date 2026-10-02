@@ -2,8 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { checkManifest, policyChecklist } from '../scripts/qa.mjs';
-const testRoot = path.join(path.dirname(path.dirname(new URL(import.meta.url).pathname)), '..', '..', '.test-data', 'ad-images');
+const testRoot = path.join(path.dirname(path.dirname(fileURLToPath(import.meta.url))), '..', '..', '.test-data', 'ad-images');
 fs.mkdirSync(testRoot, { recursive: true });
 
 function header(width, height) {

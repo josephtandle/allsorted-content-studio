@@ -24,6 +24,7 @@ This fictional example is a completed Brand Brain. The Markdown is the source of
 - Background color: #FFF8EC
 - Ink color: #25443B
 - Accent color: #E98256
+- Default theme: dark
 - Display font: Georgia
 - Body font: Arial
 - Image direction: Natural morning light, simple studio details, no body transformation imagery

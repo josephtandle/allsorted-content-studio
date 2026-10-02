@@ -1,9 +1,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { render } from './render.mjs';
 
-const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const skillRoot = path.dirname(scriptDir);
+const { resolveStudioRoot } = createRequire(import.meta.url)('./studio-root.cjs');
+const studioRoot = resolveStudioRoot(scriptDir, skillRoot);
+const root = studioRoot ? path.join(studioRoot, 'tools/ad-images') : skillRoot;
 const sizes = { square: [1080, 1080], feed: [1080, 1350], story: [1080, 1920] };
 const safeSlug = (text) => String(text).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'offer';
 
@@ -35,6 +40,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   try {
     const input = JSON.parse(fs.readFileSync(batchPath, 'utf8'));
     const projectDir = path.dirname(batchPath);
+    const briefText = fs.existsSync(path.join(projectDir, 'brief.md')) ? fs.readFileSync(path.join(projectDir, 'brief.md'), 'utf8') : '';
+    const briefTheme = briefText.match(/^\s*(?:visual\s+)?theme\s*:\s*(light|dark)\s*$/im)?.[1]?.toLowerCase();
     const outDir = path.join(projectDir, 'outputs');
     fs.mkdirSync(outDir, { recursive: true });
     const manifest = { offer: input.offer, format: input.format, ratio: input.ratio, files: makeManifest(input, outDir) };
@@ -43,7 +50,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     for (let i = 0; i < input.variations.length; i++) {
       const item = input.variations[i];
       const entry = manifest.files[i];
-      const data = { ...item, brand: { ...(input.brand || {}), colors: { ...(input.brand?.colors || {}), ...(item.colors || {}) } }, brandName: input.brand?.brandName };
+      const data = { ...item, theme: item.theme || input.theme || briefTheme || input.brand?.theme || 'dark', brand: { ...(input.brand || {}), colors: { ...(input.brand?.colors || {}), ...(item.colors || {}) } }, brandName: input.brand?.brandName };
       const rendered=await render({ templatePath: path.join(root, 'templates', `${item.template}.html`), dataPath: null, outPath: path.join(projectDir, entry.file), width, height, browser: undefined, data });
       entry.headlineFontSize=rendered.headlineFontSize;
       entry.measurements=rendered.measurements;

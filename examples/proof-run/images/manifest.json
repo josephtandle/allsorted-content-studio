@@ -1,19 +1,19 @@
 {
   "files": [
     {
-      "file": "sunrise-yoga_01_offer-card_square.png",
+      "file": "sunrise-yoga_01_hook-card_square.png",
       "hook": "A calmer start begins here",
       "width": 1080,
       "height": 1080,
       "ratio": "square",
-      "template": "offer-card",
+      "template": "hook-card",
       "layoutBox": null,
       "status": "rendered",
-      "headlineFontSize": 103,
+      "headlineFontSize": 106,
       "measurements": [
         {
           "index": 0,
-          "selector": "div.label",
+          "selector": "div.eyebrow",
           "background": "rgba(0, 0, 0, 0)",
           "borderWidth": "0px",
           "text": "SUNRISE YOGA STUDIO",
@@ -22,12 +22,12 @@
           "overlaps": [],
           "scrollHeight": 39,
           "clientHeight": 39,
-          "scrollWidth": 884,
-          "clientWidth": 884,
+          "scrollWidth": 920,
+          "clientWidth": 920,
           "rect": {
-            "x": 98,
-            "y": 253,
-            "width": 884,
+            "x": 80,
+            "y": 201,
+            "width": 920,
             "height": 39
           }
         },
@@ -37,18 +37,18 @@
           "background": "rgba(0, 0, 0, 0)",
           "borderWidth": "0px",
           "text": "A calmer start begins here",
-          "fontSize": 103,
+          "fontSize": 106,
           "overflow": false,
           "overlaps": [],
-          "scrollHeight": 221,
-          "clientHeight": 221,
-          "scrollWidth": 884,
-          "clientWidth": 884,
+          "scrollHeight": 224,
+          "clientHeight": 224,
+          "scrollWidth": 900,
+          "clientWidth": 900,
           "rect": {
-            "x": 98,
-            "y": 317,
-            "width": 884,
-            "height": 221
+            "x": 80,
+            "y": 313,
+            "width": 900,
+            "height": 224
           }
         },
         {
@@ -56,19 +56,19 @@
           "selector": "p",
           "background": "rgba(0, 0, 0, 0)",
           "borderWidth": "0px",
-          "text": "Try one gentle beginner class this week.",
+          "text": "Try a welcoming beginner class at your own pace.",
           "fontSize": 46,
           "overflow": false,
           "overlaps": [],
-          "scrollHeight": 62,
-          "clientHeight": 62,
-          "scrollWidth": 884,
-          "clientWidth": 884,
+          "scrollHeight": 112,
+          "clientHeight": 112,
+          "scrollWidth": 900,
+          "clientWidth": 900,
           "rect": {
-            "x": 98,
-            "y": 609,
-            "width": 884,
-            "height": 62
+            "x": 80,
+            "y": 611,
+            "width": 900,
+            "height": 112
           }
         },
         {
@@ -85,8 +85,122 @@
           "scrollWidth": 643,
           "clientWidth": 643,
           "rect": {
-            "x": 98,
-            "y": 741,
+            "x": 80,
+            "y": 793,
+            "width": 647,
+            "height": 86
+          }
+        }
+      ],
+      "overflow": false
+    },
+    {
+      "file": "sunrise-yoga_02_problem-solution_square.png",
+      "hook": "Find your first class",
+      "width": 1080,
+      "height": 1080,
+      "ratio": "square",
+      "template": "problem-solution",
+      "layoutBox": null,
+      "status": "rendered",
+      "headlineFontSize": 104,
+      "measurements": [
+        {
+          "index": 0,
+          "selector": "div.label",
+          "background": "rgba(0, 0, 0, 0)",
+          "borderWidth": "0px",
+          "text": "SUNRISE YOGA STUDIO",
+          "fontSize": 34,
+          "overflow": false,
+          "overlaps": [],
+          "scrollHeight": 39,
+          "clientHeight": 39,
+          "scrollWidth": 920,
+          "clientWidth": 920,
+          "rect": {
+            "x": 80,
+            "y": 225,
+            "width": 920,
+            "height": 39
+          }
+        },
+        {
+          "index": 1,
+          "selector": "h1",
+          "background": "rgba(0, 0, 0, 0)",
+          "borderWidth": "0px",
+          "text": "Find your first class",
+          "fontSize": 104,
+          "overflow": false,
+          "overlaps": [],
+          "scrollHeight": 232,
+          "clientHeight": 232,
+          "scrollWidth": 920,
+          "clientWidth": 920,
+          "rect": {
+            "x": 80,
+            "y": 284,
+            "width": 920,
+            "height": 232
+          }
+        },
+        {
+          "index": 2,
+          "selector": "div.arrow",
+          "background": "rgba(0, 0, 0, 0)",
+          "borderWidth": "0px",
+          "text": "↓",
+          "fontSize": 44,
+          "overflow": false,
+          "overlaps": [],
+          "scrollHeight": 50,
+          "clientHeight": 50,
+          "scrollWidth": 920,
+          "clientWidth": 920,
+          "rect": {
+            "x": 80,
+            "y": 537,
+            "width": 920,
+            "height": 50
+          }
+        },
+        {
+          "index": 3,
+          "selector": "p",
+          "background": "rgba(0, 0, 0, 0)",
+          "borderWidth": "0px",
+          "text": "Explore a calm introduction to yoga.",
+          "fontSize": 46,
+          "overflow": false,
+          "overlaps": [],
+          "scrollHeight": 64,
+          "clientHeight": 64,
+          "scrollWidth": 850,
+          "clientWidth": 850,
+          "rect": {
+            "x": 80,
+            "y": 635,
+            "width": 850,
+            "height": 64
+          }
+        },
+        {
+          "index": 4,
+          "selector": "div.cta",
+          "background": "rgb(233, 130, 86)",
+          "borderWidth": "2px",
+          "text": "See the beginner class schedule",
+          "fontSize": 38,
+          "overflow": false,
+          "overlaps": [],
+          "scrollHeight": 82,
+          "clientHeight": 82,
+          "scrollWidth": 643,
+          "clientWidth": 643,
+          "rect": {
+            "x": 80,
+            "y": 770,
             "width": 647,
             "height": 86
           }

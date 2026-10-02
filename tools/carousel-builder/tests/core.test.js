@@ -36,6 +36,10 @@ test('carousel CSS uses brand colors and fonts without an off-brand gradient', (
   assert.match(html,/font:700 120px\/1\.04 Georgia,serif/);
   assert.match(html,/font:400 44px\/1\.25 Arial,sans-serif/);
 });
+test('dark theme maps canvas, text, and button to the shared brand roles; blank headlines stay blank',()=>{
+  const html=slideMarkup({headline:'',body:'No headline on this card.',cta:'Learn more'},1,3,PRESETS.square,{background:'#25443B',ink:'#FFF8EC',accent:'#E98256',buttonInk:'#25443B'});
+  assert.match(html,/linear-gradient\(140deg,#25443B,#25443B\)/);assert.match(html,/color:#FFF8EC/);assert.match(html,/#cta\{[^}]*background:#E98256;color:#25443B/);assert.match(html,/id="headline"><\/div>/);assert.doesNotMatch(html,/Slide 2/);
+});
 test('CTA appears on the last slide by default and earlier slides can opt in', () => {
   const first = slideMarkup({ headline: 'First', cta: 'Book now' }, 0, 3, PRESETS.square, 'ocean');
   const optedIn = slideMarkup({ headline: 'Second', cta: 'Book now', showCta: true }, 1, 3, PRESETS.square, 'ocean');

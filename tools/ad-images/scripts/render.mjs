@@ -1,17 +1,20 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 
 const require=createRequire(import.meta.url);
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const { resolveStudioRoot } = require('./studio-root.cjs');
+const studioRoot = resolveStudioRoot(scriptDir, path.dirname(scriptDir));
 let chromium;
-try{chromium=require('playwright-core').chromium}catch{ try { if(process.env.CONTENT_STUDIO_DIR) chromium=require(path.join(process.env.CONTENT_STUDIO_DIR,'tools/carousel-builder/node_modules/playwright-core')).chromium; } catch {} }
+try{chromium=require('playwright-core').chromium}catch{ try { chromium=require(path.join(studioRoot,'tools/carousel-builder/node_modules/playwright-core')).chromium; } catch {} }
 
 export function parseArgs(args) {
   const result = {};
   for (let i = 0; i < args.length; i++) {
-    if (args[i].startsWith('--')) result[args[i].slice(2)] = args[++i];
+    if (args[i].startsWith('--')) result[args[i].slice(2)] = args[i + 1] && !args[i + 1].startsWith('--') ? args[++i] : true;
   }
   return result;
 }
@@ -42,8 +45,14 @@ export function makeHtml(template, data, width, height) {
   const brand = data.brand || {};
   const colors = brand.colors || {};
   const fonts = brand.fonts || {};
+  const requestedTheme = data.theme || brand.theme || 'dark';
+  const theme = requestedTheme === 'light' ? 'light' : 'dark';
+  const dark = colors.darkVariant || { canvas: colors.ink, ink: colors.canvas || colors.background, accent: colors.accent };
+  const themedColors = theme === 'dark'
+    ? { canvas: dark.canvas || colors.ink || '#173B35', ink: dark.ink || colors.canvas || colors.background || '#F7F2E8', accent: dark.accent || colors.accent || '#E47C52' }
+    : { canvas: colors.canvas || colors.background || '#F7F2E8', ink: colors.ink || '#173B35', accent: colors.accent || '#E47C52' };
   const values = {
-    BACKGROUND: safeCss(colors.background, '#F7F2E8'), INK: safeCss(colors.ink, '#173B35'), ACCENT: safeCss(colors.accent, '#E47C52'),
+    BACKGROUND: safeCss(themedColors.canvas, '#F7F2E8'), INK: safeCss(themedColors.ink, '#173B35'), ACCENT: safeCss(themedColors.accent, '#E47C52'),
     DISPLAY_FONT: safeCss(fonts.display, 'Georgia'), BODY_FONT: safeCss(fonts.body, 'Arial'), BRAND: data.brandName || brand.brandName || 'Your business',
     HOOK: data.hook || data.headline || '', HEADLINE: data.headline || '', BODY: data.body || '', CTA: data.cta || '',
     TIP1: data.tips?.[0] || data.tip1 || '', TIP2: data.tips?.[1] || data.tip2 || '', TIP3: data.tips?.[2] || data.tip3 || '', PROOF: data.proof || '',
@@ -55,6 +64,7 @@ export function makeHtml(template, data, width, height) {
     html = html.replace(/data-layout-box="[^"]+"/g, 'data-layout-box="0.08,0.14,0.84,0.66"');
   }
   html=html.replace('</style>','.canvas h1{height:auto!important;max-height:none!important;overflow:visible!important;padding-bottom:8px!important}</style>');
+  html=html.replace('</style>',`:root{--paper:${safeCss(themedColors.canvas,'#F7F2E8')}!important;--ink:${safeCss(themedColors.ink,'#173B35')}!important;--accent:${safeCss(themedColors.accent,'#E47C52')}!important}body{background:${safeCss(themedColors.canvas,'#F7F2E8')}!important;color:${safeCss(themedColors.ink,'#173B35')}!important}.cta{background:var(--accent)!important;color:${safeCss(themedColors.ink,'#173B35')}!important}</style>`);
   for (const [key, value] of Object.entries(values)) html = html.replaceAll(`{{${key}}}`, escapeHtml(String(value)));
   html = html.replace('</body>', `<script>
   (()=>{
@@ -99,15 +109,41 @@ export function escapeHtml(value) {
   return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
 }
 
-export async function render({ templatePath, dataPath, data: suppliedData, outPath, width, height, browser = findBrowser() }) {
-  if(fs.existsSync(path.resolve(outPath)))throw new Error(`Refusing to overwrite existing creative: ${path.resolve(outPath)}`);
+function overflowAdvice(element) {
+  const selector = element.selector || '';
+  const value = element.text || '';
+  let name, limit, unit;
+  if (/(^|\.)cta($|\.)/i.test(selector)) {
+    [name, limit, unit] = ['CTA', 36, 'characters'];
+  } else if (/(^|\.)label($|\.)|(^|\.)eyebrow($|\.)/i.test(selector)) {
+    [name, limit, unit] = ['eyebrow', 6, 'words'];
+  } else if (selector === 'h1' || selector.startsWith('h1.')) {
+    [name, limit, unit] = ['hook/headline', 12, 'words'];
+  } else {
+    [name, limit, unit] = ['body', 24, 'words'];
+  }
+  const count = unit === 'characters' ? String(value).length : String(value).trim().split(/\s+/).filter(Boolean).length;
+  return `Shorten ${name} to ${limit} ${unit} maximum (current: ${count} ${unit}).`;
+}
+
+export async function render({ templatePath, dataPath, data: suppliedData, outPath, width, height, browser = findBrowser(), overwrite = false }) {
+  if(fs.existsSync(path.resolve(outPath))&&!overwrite)throw new Error(`Refusing to overwrite existing creative: ${path.resolve(outPath)}. Use --overwrite to replace it.`);
   if (!browser) throw new Error('Install Google Chrome to run the browser renderer.');
   const data = suppliedData || (dataPath ? JSON.parse(fs.readFileSync(dataPath, 'utf8')) : {});
-  const studioBrandPath = process.env.CONTENT_STUDIO_DIR ? path.join(process.env.CONTENT_STUDIO_DIR, 'brand', 'brand.json') : '';
+  if (!data.theme && dataPath) {
+    for (const dir of [path.dirname(path.resolve(dataPath)), path.dirname(path.dirname(path.resolve(dataPath)))]) {
+      const brief = path.join(dir, 'brief.md');
+      if (!fs.existsSync(brief)) continue;
+      const match = fs.readFileSync(brief, 'utf8').match(/^\s*(?:visual\s+)?theme\s*:\s*(light|dark)\s*$/im);
+      if (match) { data.theme = match[1].toLowerCase(); break; }
+    }
+  }
+  const studioBrandPath = studioRoot && path.join(studioRoot, 'brand', 'brand.json');
   if (studioBrandPath && fs.existsSync(studioBrandPath)) { const shared = JSON.parse(fs.readFileSync(studioBrandPath, 'utf8')); data.brand = { ...(data.brand || {}), ...shared }; data.brandName = data.brandName || shared.brandName; }
+  else console.log('Brand file not found, using default colours');
   const template = fs.readFileSync(templatePath, 'utf8');
   const html = makeHtml(template, data, width, height);
-  const tempRoot = process.env.CONTENT_STUDIO_DIR ? path.join(process.env.CONTENT_STUDIO_DIR, '.test-data') : os.tmpdir();
+  const tempRoot = path.join(studioRoot || path.dirname(scriptDir), '.test-data');
   fs.mkdirSync(tempRoot,{recursive:true});
   const temp = path.join(tempRoot, `ad-creative-${process.pid}-${Date.now()}.html`);
   fs.writeFileSync(temp, html);
@@ -121,9 +157,9 @@ export async function render({ templatePath, dataPath, data: suppliedData, outPa
     const diagnostics=await page.locator('#render-measurements').evaluate(node=>JSON.parse(decodeURIComponent(Array.from(atob(node.textContent.trim()),char=>'%'+char.charCodeAt(0).toString(16).padStart(2,'0')).join(''))));
     const overflows=diagnostics.elements.filter(item=>item.overflow);
     if(overflows.length){
-      const words=String(data.hook||data.headline||'').trim().split(/\s+/).filter(Boolean).length;
       const details=overflows.map(item=>`${item.selector} (${item.fontSize}px at ${item.rect.x},${item.rect.y} ${item.rect.width}x${item.rect.height}, scroll ${item.scrollWidth}x${item.scrollHeight} client ${item.clientWidth}x${item.clientHeight}${item.overlaps.length?`, overlaps ${item.overlaps.join(',')}`:''})`).join(', ');
-      throw new Error(`Headline still overflows at 72px. Shorten the headline to 12 words maximum (current: ${words} words). Elements: ${details}`);
+      const advice=[...new Set(overflows.map(overflowAdvice))].join(' ');
+      throw new Error(`Image text still overflows. ${advice} Elements: ${details}`);
     }
     await page.screenshot({path:path.resolve(outPath),animations:'disabled'});
     const dimensions=pngDimensions(outPath);
@@ -143,7 +179,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
   const browser = findBrowser();
   if (!browser) { console.error('Install Google Chrome to run the browser renderer.'); process.exit(2); }
   try {
-    const dimensions = await render({ templatePath: args.template, dataPath: args.data, outPath: args.out, width: Number(args.width), height: Number(args.height), browser });
+    const dimensions = await render({ templatePath: args.template, dataPath: args.data, outPath: args.out, width: Number(args.width), height: Number(args.height), browser, overwrite: args.overwrite === true });
     if(args.manifest){
       const manifestPath=path.resolve(args.manifest);
       const manifest=fs.existsSync(manifestPath)?JSON.parse(fs.readFileSync(manifestPath,'utf8')):{files:[]};

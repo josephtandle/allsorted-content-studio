@@ -26,6 +26,8 @@ Ask your agent workspace to make ad creatives, make a carousel, create ad variat
 
 Square output is 1080 × 1080, feed output is 1080 × 1350, and story/reel output is 1080 × 1920. Story layouts reserve the top 14% and bottom 20%. Instagram carousel slides should be square and number between 2 and 10.
 
+Single renders refuse to replace an existing output by default. Add `--overwrite` to `scripts/render.mjs` when intentionally correcting and re-rendering that file.
+
 Open and review every PNG before use. The checker cannot judge whether an ad is clear, on-brand, accurate, or allowed by Meta. Meta may add an “AI info” label when generative AI is involved. Keep provenance metadata intact.
 
 ## Optional tools

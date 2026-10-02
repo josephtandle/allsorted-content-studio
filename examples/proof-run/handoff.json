@@ -10,9 +10,13 @@
       "type": "carousel",
       "name": "sunrise-yoga carousel",
       "pageId": "FILL_IN_META_PAGE_ID",
-      "message": "FILL_IN_PRIMARY_MESSAGE",
+      "message": "Take your first step with a welcoming class.",
+      "primary_text": "Take your first step with a welcoming class.",
+      "headline": "",
+      "link_description": "Browse beginner sessions",
       "link": "FILL_IN_LANDING_PAGE_URL",
-      "callToAction": "BOOK_NOW",
+      "callToAction": "GET_OFFER",
+      "cta_type": "GET_OFFER",
       "status": "PAUSED",
       "cards": [
         {
@@ -50,12 +54,29 @@
       "type": "image",
       "name": "A calmer start begins here",
       "pageId": "FILL_IN_META_PAGE_ID",
-      "message": "FILL_IN_PRIMARY_MESSAGE",
+      "message": "A welcoming first yoga class at your own pace.",
+      "primary_text": "A welcoming first yoga class at your own pace.",
       "link": "FILL_IN_LANDING_PAGE_URL",
+      "link_description": "View beginner class times",
       "callToAction": "BOOK_NOW",
+      "cta_type": "BOOK_NOW",
       "status": "PAUSED",
-      "image": "./images/sunrise-yoga_01_offer-card_square.png",
+      "image": "./images/sunrise-yoga_01_hook-card_square.png",
       "headline": "A calmer start"
+    },
+    {
+      "type": "image",
+      "name": "Find your first class",
+      "pageId": "FILL_IN_META_PAGE_ID",
+      "message": "Explore a calm introduction to yoga.",
+      "primary_text": "Explore a calm introduction to yoga.",
+      "link": "FILL_IN_LANDING_PAGE_URL",
+      "link_description": "See class details",
+      "callToAction": "SIGN_UP",
+      "cta_type": "SIGN_UP",
+      "status": "PAUSED",
+      "image": "./images/sunrise-yoga_02_problem-solution_square.png",
+      "headline": "Find your first class"
     }
   ]
 }

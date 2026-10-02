@@ -5,6 +5,8 @@ const express = require('express');
 const sharp = require('sharp');
 const { PRESETS, slug, appendManifest, makeSpec } = require('./lib/core');
 const { renderSlides } = require('./lib/slide-renderer');
+const { resolveStudioRoot } = require('../../scripts/studio-root.cjs');
+const studioRoot = resolveStudioRoot(__dirname);
 
 try { require('dotenv').config(); } catch {}
 const app = express();
@@ -13,7 +15,7 @@ const root = path.resolve(process.env.CAROUSEL_WORKSPACE || path.join(__dirname,
 const assets = path.join(__dirname, 'public');
 app.use(express.static(assets));
 app.use('/workspace', express.static(root));
-app.get('/api/config', (_req, res) => { let brand = null; try { const shared = path.join(process.env.CONTENT_STUDIO_DIR || path.join(__dirname, '..', '..'), 'brand', 'brand.json'); brand = require('node:fs').existsSync(shared) ? JSON.parse(require('node:fs').readFileSync(shared, 'utf8')) : null; } catch {} res.json({ brand, presets: PRESETS, pexelsEnabled: Boolean(process.env.PEXELS_API_KEY) && process.env.ENABLE_PEXELS === 'true', aiCaptionEnabled: Boolean(process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_MODEL) && process.env.ENABLE_AI_CAPTIONS === 'true' }); });
+app.get('/api/config', (_req, res) => { let brand = null; try { const shared = studioRoot && path.join(studioRoot, 'brand', 'brand.json'); brand = shared && require('node:fs').existsSync(shared) ? JSON.parse(require('node:fs').readFileSync(shared, 'utf8')) : null; } catch {} res.json({ brand, presets: PRESETS, pexelsEnabled: Boolean(process.env.PEXELS_API_KEY) && process.env.ENABLE_PEXELS === 'true', aiCaptionEnabled: Boolean(process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_MODEL) && process.env.ENABLE_AI_CAPTIONS === 'true' }); });
 
 app.post('/api/generate', (req, res) => {
   const { offer = 'your first yoga class', audience = 'people starting a gentle morning yoga practice', pain = 'mornings feel rushed', transformation = 'begin with a 10-minute stretch', cta = 'Try a class', slideCount = 3, framework = 'AIDA' } = req.body || {};
@@ -30,7 +32,7 @@ app.post('/api/generate', (req, res) => {
 
 app.post('/api/export', async (req, res) => {
   try {
-    const { title = 'carousel', offer = title, slides = [], presetId = 'square', palette = 'brand', headlineHook = '', pageId, link, message } = req.body || {};
+    const { title = 'carousel', offer = title, slides = [], presetId = 'square', palette = 'brand', theme: requestedTheme, headlineHook = '', pageId, link, message } = req.body || {};
     const preset = PRESETS[presetId];
     if (!preset) return res.status(400).json({ error: 'Choose a supported image size.' });
     if (!Array.isArray(slides) || slides.length < 2 || slides.length > 10) return res.status(400).json({ error: 'Add between 2 and 10 slides before exporting.' });
@@ -40,7 +42,7 @@ app.post('/api/export', async (req, res) => {
     const offerSlug = slug(offer, 'offer');
     const files = [];
     let selectedPalette=palette;
-    if(palette==='brand'){try{const sharedPath=path.join(process.env.CONTENT_STUDIO_DIR||path.join(__dirname,'..','..'),'brand','brand.json');const sharedBrand=JSON.parse(await fs.readFile(sharedPath,'utf8'));selectedPalette={...sharedBrand.colors,fonts:sharedBrand.fonts};}catch{selectedPalette=undefined;}}
+    if(palette==='brand'){try{if(!studioRoot)throw new Error('Studio root not found');const sharedPath=path.join(studioRoot,'brand','brand.json');const sharedBrand=JSON.parse(await fs.readFile(sharedPath,'utf8'));const theme=requestedTheme||sharedBrand.theme||'dark';const colors=sharedBrand.colors||{};const dark=colors.darkVariant||{};selectedPalette={background:theme==='light'?(colors.canvas||colors.background):(dark.canvas||colors.ink),ink:theme==='light'?colors.ink:(dark.ink||colors.canvas||colors.background),accent:theme==='light'?colors.accent:(dark.accent||colors.accent),buttonInk:theme==='light'?colors.ink:(dark.ink||colors.canvas||colors.background),fonts:sharedBrand.fonts};}catch{selectedPalette=undefined;}}
     const renderedSlides = await renderSlides(slides, preset, selectedPalette);
     for (let i = 0; i < slides.length; i++) {
       const filename = `${offerSlug}_${String(i + 1).padStart(2, '0')}_carousel_${preset.ratio}.png`;
@@ -65,7 +67,7 @@ app.post('/api/export', async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message || 'Export failed.' }); }
 });
 
-app.get('/api/settings', async (_req, res) => { const dir = path.join(root, 'creatives'); await fs.mkdir(dir, { recursive: true }); const names = await fs.readdir(dir); let brand = null; try { const shared = path.join(process.env.CONTENT_STUDIO_DIR || path.join(__dirname, '..', '..'), 'brand', 'brand.json'); brand = require('node:fs').existsSync(shared) ? JSON.parse(require('node:fs').readFileSync(shared, 'utf8')) : null; } catch {} res.json({ brand, pexelsEnabled: Boolean(process.env.PEXELS_API_KEY) && process.env.ENABLE_PEXELS === 'true', aiCaptionEnabled: Boolean(process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_MODEL) && process.env.ENABLE_AI_CAPTIONS === 'true', workspace: path.relative(__dirname, root) || '.' }); });
+app.get('/api/settings', async (_req, res) => { const dir = path.join(root, 'creatives'); await fs.mkdir(dir, { recursive: true }); const names = await fs.readdir(dir); let brand = null; try { const shared = studioRoot && path.join(studioRoot, 'brand', 'brand.json'); brand = shared && require('node:fs').existsSync(shared) ? JSON.parse(require('node:fs').readFileSync(shared, 'utf8')) : null; } catch {} res.json({ brand, pexelsEnabled: Boolean(process.env.PEXELS_API_KEY) && process.env.ENABLE_PEXELS === 'true', aiCaptionEnabled: Boolean(process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_MODEL) && process.env.ENABLE_AI_CAPTIONS === 'true', workspace: path.relative(__dirname, root) || '.' }); });
 app.get('/api/images', async (req, res) => {
   if (!process.env.PEXELS_API_KEY || process.env.ENABLE_PEXELS !== 'true') return res.json({ photos: [], message: 'Stock photo search is off. Add a PEXELS_API_KEY and set ENABLE_PEXELS=true in your local environment to enable it.' });
   const q = String(req.query.q || '').slice(0, 180);

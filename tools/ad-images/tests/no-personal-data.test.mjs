@@ -14,7 +14,8 @@ function filesUnder(dir) {
 
 test('package contains no personal paths, identifiers, or environment files', () => {
   const banned = [
-    '/User' + 's/', 'my' + 'os', 'new' + 'york' + '1', 'jo' + 'e@', '@g' + 'mail', 'il' + 'ly'
+    '/User' + 's/', 'my' + 'os', 'new' + 'york' + '1', 'jo' + 'e@', '@g' + 'mail', 'il' + 'ly',
+    ['j' + 'oe', 'ch' + 'e'].join(' '), new RegExp('\\b' + 'j' + 'oe' + '\\b', 'i'), new RegExp('\\b' + 'master' + 'mind' + '\\b', 'i')
   ];
   const digitId = new RegExp('(?<![0-9])[0-9]{15,}(?![0-9])');
   const envName = '.' + 'env';
@@ -24,7 +25,7 @@ test('package contains no personal paths, identifiers, or environment files', ()
     if (path.extname(file).toLowerCase() === '.png') continue;
     const content = fs.readFileSync(file);
     const text = content.toString('utf8');
-    for (const term of banned) if (text.toLowerCase().includes(term.toLowerCase())) violations.push(`${path.relative(root, file)}: personal-data pattern`);
+    for (const term of banned) if (term instanceof RegExp ? term.test(text) : text.toLowerCase().includes(term.toLowerCase())) violations.push(`${path.relative(root, file)}: personal-data pattern`);
     if (digitId.test(text)) violations.push(`${path.relative(root, file)}: long numeric identifier`);
   }
   assert.deepEqual(violations, []);

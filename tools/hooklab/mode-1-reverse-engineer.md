@@ -59,7 +59,7 @@ Extract all handles from the Active table.
   ```
   node HOOKLAB_DIR/personal/fetch-testimonials.js
   ```
-  Parse the `=QUOTES:mastermind=` block for short, specific in-session quotes (best for payoff beats , real names, real numbers, real sessions). Parse the `=TESTIMONIALS:mentorship=` block for longer client quotes (best for credibility anchors). Use real names and exact quote text throughout the output. Never replace with generic placeholders.
+  Parse any quotes the user provides in their own personal/ files (for example, a quotes or testimonials section) for short, specific, real quotes. Skip this if none are provided.
 
 - If it has a static table of names and results: use those names and specifics throughout.
 

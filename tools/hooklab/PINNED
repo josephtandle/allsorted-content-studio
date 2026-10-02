@@ -1,3 +1,4 @@
-Source: https://github.com/josephtandle/hooklab-claude-skill
-Copied from the local sanitized HookLab payload on 2026-10-02.
+Upstream: https://github.com/josephtandle/ultimate-hooklab-skill (b7ffa880, same tree as fc11e9e)
+Copied from: the All Sorted skills module payload (skills 1.3) on 2026-10-02
 Personal folder ships as empty templates only.
+Local change: mode-1 and mode-2 now read quotes from your own personal/ files instead of a private quote source.

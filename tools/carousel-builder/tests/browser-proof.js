@@ -2,6 +2,9 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const { chromium } = require('playwright-core');
 const fsSync = require('node:fs');
+const { spawn } = require('node:child_process');
+const net = require('node:net');
+const { makeSpec } = require('../lib/core');
 function browserPaths() {
   const home=process.env.HOME||require('node:os').homedir();const pathVar=process.env.PATH||'';const dirs=pathVar.split(require('node:path').delimiter).filter(Boolean);
   const chrome=process.platform==='darwin'?['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',`${home}/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`]:process.platform==='win32'?['C:/Program Files/Google/Chrome/Application/chrome.exe','C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',`${process.env.LOCALAPPDATA||''}/Google/Chrome/Application/chrome.exe`]:dirs.flatMap(d=>[`${d}/google-chrome`,`${d}/google-chrome-stable`]);
@@ -12,11 +15,52 @@ function browserPath() { return browserPaths()[0]||null; }
 
 async function launchBrowser() { for(const executablePath of browserPaths()){try{return await chromium.launch({executablePath,headless:true});}catch{}}throw new Error('Install Google Chrome to run the browser renderer.'); }
 const sharp = require('sharp');
-const { validateCarouselSpec } = require(path.resolve(__dirname, '../../../../../../agents/meta-ads/src/carousel.js'));
+
+function validateCarouselSpec(spec) {
+  if (!spec || typeof spec !== 'object' || !/^\d{5,}$/.test(String(spec.pageId || ''))) throw new Error('Carousel spec needs a numeric Meta Page ID.');
+  if (!String(spec.message || '').trim() || !/^https?:\/\//.test(String(spec.link || ''))) throw new Error('Carousel spec needs a primary message and landing page URL.');
+  if (!Array.isArray(spec.cards) || spec.cards.length < 2 || spec.cards.length > 10) throw new Error('Carousel spec needs 2 to 10 cards.');
+  for (const [index, card] of spec.cards.entries()) {
+    if (!card || Object.keys(card).sort().join(',') !== 'headline,image' || !String(card.headline || '').trim() || !String(card.image || '').trim()) throw new Error(`Carousel card ${index + 1} needs exactly image and headline fields.`);
+  }
+}
+
+async function freePort() {
+  const server = net.createServer();
+  await new Promise((resolve, reject) => server.listen(0, '127.0.0.1', resolve).once('error', reject));
+  const { port } = server.address();
+  await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+  return port;
+}
 
 async function main() {
-  const base = process.env.BASE_URL || 'http://localhost:4173';
   const root = path.resolve(__dirname, '..');
+  const repoRoot = path.resolve(root, '../..');
+  const workspace = path.join(repoRoot, '.test-data/browser-workspace');
+  await fs.rm(workspace, { recursive: true, force: true });
+  await fs.mkdir(workspace, { recursive: true });
+  const port = await freePort();
+  const base = `http://127.0.0.1:${port}`;
+  const server = spawn(process.execPath, [path.join(root, 'server.js')], { cwd: root, env: { ...process.env, PORT: String(port), CAROUSEL_WORKSPACE: workspace }, stdio: ['ignore', 'pipe', 'pipe'] });
+  let serverOutput = '';
+  server.stdout.on('data', chunk => { serverOutput += chunk.toString(); });
+  server.stderr.on('data', chunk => { serverOutput += chunk.toString(); });
+  try {
+    const deadline = Date.now() + 15000;
+    while (Date.now() < deadline) {
+      if (server.exitCode !== null) throw new Error(`Carousel server exited early: ${serverOutput}`);
+      try { const response = await fetch(`${base}/api/config`); if (response.ok) break; } catch {}
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    if (Date.now() >= deadline) throw new Error(`Carousel server did not become ready: ${serverOutput}`);
+    await runBrowserFlow({ base, root, workspace });
+  } finally {
+    server.kill('SIGTERM');
+    await new Promise(resolve => { if (server.exitCode !== null) return resolve(); const timer = setTimeout(() => { server.kill('SIGKILL'); resolve(); }, 3000); server.once('exit', () => { clearTimeout(timer); resolve(); }); });
+  }
+}
+
+async function runBrowserFlow({ base, root, workspace }) {
   const browser = await launchBrowser();
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   const errors = [];
@@ -48,12 +92,12 @@ async function main() {
     if (rejected.status !== 500 || !/Please shorten the headline\./.test(rejected.body.error || '')) throw new Error(`Overflow export did not fail with the required message: ${JSON.stringify(rejected)}`);
     await page.getByRole('button', { name: /Export PNGs/ }).click();
     await page.getByText(/Slides exported at 1080 × 1080/).waitFor();
-    const manifestPath = path.join(process.env.CAROUSEL_WORKSPACE || path.join(root, '.test-data/browser-workspace'), 'creatives/manifest.json');
+    const manifestPath = path.join(workspace, 'creatives/manifest.json');
     const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
     const specLink = page.locator('a[download]').getAttribute('href');
     const specHref = await specLink;
     const specName = decodeURIComponent(new URL(specHref, base).pathname.split('/').pop());
-    const specPath = path.join(process.env.CAROUSEL_WORKSPACE || path.join(root, '.test-data/browser-workspace'), 'creatives', specName);
+    const specPath = path.join(workspace, 'creatives', specName);
     const spec = JSON.parse(await fs.readFile(specPath, 'utf8'));
     if (spec.cards.length !== 3) throw new Error(`Expected 3 cards, found ${spec.cards.length}`);
     if (manifest.files.length < 3) throw new Error('The manifest does not contain the three exported slides.');
@@ -72,6 +116,7 @@ async function main() {
       if (Object.values(entry.overflow).some(Boolean)) throw new Error(`${entry.file} records text overflow.`);
     }
     const readySpec = { ...spec, pageId: '1234567', message: 'A sample primary message', link: 'https://example.com/offer', cards: spec.cards.map((card, i) => ({ ...card, image: exported[i] })) };
+    if (spec.cards.length !== makeSpec({ slides: spec.cards.map(card => ({ file: card.image, heading: card.headline })) }).cards.length) throw new Error('Exported carousel shape differs from the packaged handoff builder.');
     validateCarouselSpec(readySpec);
     if (errors.length) throw new Error(`Browser errors: ${errors.join('; ')}`);
     console.log(JSON.stringify({ status: 'PASS', slides: exported, spec: specPath, manifest: manifestPath, specCards: spec.cards.length, pixels: '1080x1080', measurements: proofEntries.map(({ file, fontSize, measurements, overflow }) => ({ file, fontSize, eyebrow: measurements.eyebrow.fontSize, body: measurements.body.fontSize, counter: measurements.counter.fontSize, overflow })), validator: 'Meta carousel validator passed after replacing the marked blanks' }, null, 2));

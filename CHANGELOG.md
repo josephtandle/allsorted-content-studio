@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3
+
+- Made Carousel Builder browser proof self-contained with a local handoff validator, isolated server workspace, and repository path-escape guard.
+- Consistent licence holder across all tools; corrected HookLab provenance; removed a private quote-source reference; stronger privacy checks.
+
 ## 1.0.2
 
 - Matched copy to each creative and added explicit Meta CTA types.

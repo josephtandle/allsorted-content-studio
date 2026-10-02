@@ -123,22 +123,43 @@ test('generated handoff conforms to the packaged carousel spec shape after blank
   for (const card of hydrated.cards) assert.deepEqual(Object.keys(card), ['image', 'headline']);
 });
 
+test('shipped files do not contain relative paths that escape the repository root', async () => {
+  const root = path.resolve(__dirname, '..', '..', '..');
+  async function walk(dir) {
+    const files = [];
+    for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
+      if (['.git', 'node_modules', '.test-data', 'workspace'].includes(entry.name)) continue;
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) files.push(...await walk(full));
+      else if (!/\.(png|jpe?g|webp|mp4|pdf)$/i.test(entry.name)) files.push(full);
+    }
+    return files;
+  }
+  for (const file of await walk(root)) {
+    const content = await fs.readFile(file, 'utf8');
+    for (const match of content.matchAll(/(?:\.\.\/)+/g)) {
+      const resolved = path.resolve(path.dirname(file), match[0]);
+      assert.ok(resolved === root || resolved.startsWith(`${root}${path.sep}`), `${path.relative(root, file)} contains escaping path ${match[0]}`);
+    }
+  }
+});
+
 test('source files contain no personal identifiers and no local secret file exists', async () => {
   const root = path.resolve(__dirname, '..');
-  const forbidden = [String.fromCharCode(47,85,115,101,114,115,47), ['m','y','o','s'].join(''), ['n','e','w','y','o','r','k','1'].join(''), ['j','o','e','@'].join(''), ['@','g','m','a','i','l'].join(''), ['i','l','l','y'].join(''), ['m','a','s','t','e','r','m','i','n','d','s'].join('')];
+  const forbidden = [String.fromCharCode(47,85,115,101,114,115,47), ['m','y','o','s'].join(''), ['n','e','w','y','o','r','k','1'].join(''), ['j','o','e','@'].join(''), ['@','g','m','a','i','l'].join(''), ['i','l','l','y'].join(''), ['j','o','e',' ','c','h','e'].join(''), new RegExp('\\b'+'j'+'oe'+'\\b','i'), new RegExp('\\b'+'master'+'mind'+'\\b','i')];
   async function walk(dir) {
     const out=[];
     for (const entry of await fs.readdir(dir,{withFileTypes:true})) {
       if (entry.name === 'node_modules' || entry.name === 'workspace' || entry.name === '.git') continue;
       const full=path.join(dir,entry.name);
-      if(entry.isDirectory()) out.push(...await walk(full)); else if(entry.name!=='LICENSE') out.push(full);
+      if(entry.isDirectory()) out.push(...await walk(full)); else if(!/\.(png|jpg|jpeg|webp|mp4)$/i.test(entry.name)) out.push(full);
     }
     return out;
   }
   const files = await walk(root);
   for (const file of files) {
     const text=await fs.readFile(file,'utf8');
-    for (const needle of forbidden) assert.equal(text.toLowerCase().includes(needle.toLowerCase()),false,`${path.relative(root,file)} contains a personal marker`);
+    for (const needle of forbidden) assert.equal(needle instanceof RegExp ? needle.test(text) : text.toLowerCase().includes(needle.toLowerCase()),false,`${path.relative(root,file)} contains a personal marker`);
     assert.equal(/\d{15,}/.test(text),false,`${path.relative(root,file)} contains a long numeric identifier`);
   }
   assert.equal((await fs.readdir(root)).includes('.env'),false,'local API keys must not ship');

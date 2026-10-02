@@ -1,16 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { checkManifest, policyChecklist } from '../scripts/qa.mjs';
+const testRoot = path.join(path.dirname(path.dirname(new URL(import.meta.url).pathname)), '..', '..', '.test-data', 'ad-images');
+fs.mkdirSync(testRoot, { recursive: true });
 
 function header(width, height) {
   const bytes = Buffer.alloc(24); Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(bytes); bytes.writeUInt32BE(width, 16); bytes.writeUInt32BE(height, 20); return bytes;
 }
 
 test('fails plainly named elements below mobile legibility floors', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'creative-qa-'));
+  const dir = fs.mkdtempSync(path.join(testRoot, 'creative-qa-'));
   fs.mkdirSync(path.join(dir, 'outputs'));
   fs.writeFileSync(path.join(dir, 'outputs/card.png'), header(1080, 1920));
   const manifest = { ratio: 'story', files: [{ file: 'outputs/card.png', width: 1080, height: 1920, headlineFontSize: 68, bodyFontSize: 38, visibleFontSize: 28, layoutBox: [0.08, 0.20, 0.84, 0.60], measurements: [{selector:'div.cta',text:'Book now',background:'rgb(233, 130, 86)',borderWidth:'2px',overlaps:[]}] }] };

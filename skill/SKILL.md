@@ -5,6 +5,8 @@ description: Make ads, ad creative, carousels, hooks, ad images, video ads, or e
 
 # All Sorted Content Studio
 
+The five tools are HookLab, Ad Images, Carousel Builder, HeyGen Ad Videos, and Video Editor.
+
 Read `CONTENT_STUDIO_DIR/DIRECTOR.md` and hand the full job to `content-director`. Collect the goal, offer, audience, formats, count, and evidence. If there is no helper-agent support, follow the director protocol in order. Never upload, spend, or touch an ad account.
 
 Examples:

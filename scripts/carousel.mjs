@@ -14,7 +14,8 @@ const palette = data.palette || (sharedBrand?.colors ? { background: sharedBrand
 const slides = data.slides;
 if (!Array.isArray(slides) || slides.length < 2 || slides.length > 10) throw new Error('carousel-data.json needs 2 to 10 slides');
 const out = path.join(run, 'carousel'); fs.mkdirSync(out, { recursive: true });
-const rendered = await renderSlides(slides, PRESETS[data.preset || 'square'], palette);
+const renderSlidesData = slides.map((slide, index) => ({ ...slide, showCta: slide.showCta === true || (slide.showCta !== false && index === slides.length - 1) }));
+const rendered = await renderSlides(renderSlidesData, PRESETS[data.preset || 'square'], palette);
 const slug = safeSlug(data.title);
 const ratio = PRESETS[data.preset || 'square'].ratio;
 const names = slides.map((_, i) => `${slug}_${String(i + 1).padStart(2, '0')}_carousel_${ratio}.png`);
@@ -22,6 +23,6 @@ for (let i = 0; i < rendered.length; i++) { const target=path.join(out,names[i])
 const spec = makeSpec({ title: data.title || 'Creative', pageId: 'FILL_IN_META_PAGE_ID', message: 'FILL_IN_PRIMARY_MESSAGE', link: 'FILL_IN_LANDING_PAGE_URL', slides: slides.map((s, i) => ({file:names[i], heading:s.headline||s.heading})) });
 fs.writeFileSync(path.join(out, 'carousel-spec.json'), `${JSON.stringify(spec,null,2)}\n`);
 const preset = PRESETS[data.preset || 'square'];
-const manifest = { offer: data.title || 'creative', ratio, files: slides.map((s, i) => ({file:names[i], hook:s.headline||s.heading, width:preset.width, height:preset.height, status:'rendered', overflow:Object.values(rendered[i].overflow||{}).some(Boolean), fontSize:rendered[i].headlineFontSize, minFontSize:44, measurements:rendered[i].elements})) };
+const manifest = { offer: data.title || 'creative', ratio, files: slides.map((s, i) => ({file:names[i], hook:s.headline||s.heading, width:preset.width, height:preset.height, status:'rendered', showCta:renderSlidesData[i].showCta, overflow:Object.values(rendered[i].overflow||{}).some(Boolean), fontSize:rendered[i].headlineFontSize, minFontSize:72, measurements:rendered[i].elements})) };
 fs.writeFileSync(path.join(out, 'manifest.json'), `${JSON.stringify(manifest,null,2)}\n`);
 console.log(`Rendered ${slides.length} carousel slides in ${out}`);

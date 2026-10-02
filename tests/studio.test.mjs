@@ -8,7 +8,7 @@ import { createHash } from 'node:crypto';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const node=process.execPath;
 function exec(args,env={}){return spawnSync(node,args,{cwd:root,encoding:'utf8',env:{...process.env,CONTENT_STUDIO_DIR:root,...env}})}
-function walk(dir){return fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>{const p=path.join(dir,e.name);return e.isDirectory()?walk(p):[p]})}
+function walk(dir){return fs.readdirSync(dir,{withFileTypes:true}).filter(e=>e.name!=='.git'&&e.name!=='node_modules').flatMap(e=>{const p=path.join(dir,e.name);return e.isDirectory()?walk(p):[p]})}
 test('all eight agents inherit the host model and include no model pin',()=>{const files=fs.readdirSync(path.join(root,'agents')).filter(f=>f.endsWith('.md'));assert.equal(files.length,8);for(const f of files){const text=fs.readFileSync(path.join(root,'agents',f),'utf8');assert.match(text,/^model: inherit$/m,f);for(const token of ['fa'+'ble','op'+'us','son'+'net','hai'+'ku','g'+'pt'])assert.doesNotMatch(text,new RegExp(token,'i'),f)}});
 test('the five packaged tools include the pinned Video Editor module',()=>{for(const [name,file] of [['HookLab','tools/hooklab/SKILL.md'],['Ad Images','tools/ad-images/scripts/render.mjs'],['Carousel Builder','tools/carousel-builder/lib/slide-renderer.js'],['HeyGen Ad Videos','tools/heygen-ad-videos/scripts/heygen.mjs'],['Video Editor','tools/video-editor/index.js']])assert.ok(fs.existsSync(path.join(root,file)),`${name} is packaged`);const pin=fs.readFileSync(path.join(root,'tools/video-editor/PINNED'),'utf8');assert.match(pin,/version: 1\.2\.1/);assert.match(pin,/commit: 8ce7d20/);assert.match(pin,/date: 2026-10-02/)});
 test('self-test names all five tools and treats missing ffmpeg as optional',()=>{const result=exec(['scripts/studio.mjs','self-test'],{FFMPEG_BIN:'/definitely-not-installed'});assert.equal(result.status,0,result.stderr||result.stdout);for(const name of ['Node: working','Chrome/Edge: working','HookLab: working','Ad Images: working','Carousel Builder: working','HeyGen Ad Videos: working','Video Editor: ffmpeg not installed (optional)'])assert.ok(result.stdout.includes(name),`${name} appears in self-test`)});
@@ -76,12 +76,13 @@ test('mixed offline run renders one button image and a three-slide button carous
   const imagePath=path.join(run,'images/sunrise-yoga_01_offer-card_square.png');
   const render=exec(['tools/ad-images/scripts/render.mjs','--template','tools/ad-images/templates/offer-card.html','--data',dataPath,'--out',imagePath,'--width','1080','--height','1080','--manifest',path.join(run,'images/manifest.json')]);assert.equal(render.status,0,render.stderr||render.stdout);
   const carouselData={title:'sunrise-yoga',preset:'square',palette:{background:brand.colors.background,ink:brand.colors.ink,accent:brand.colors.accent,fonts:brand.fonts},slides:[
-    {eyebrow:'WHAT GETS IN THE WAY',headline:'Starting yoga can feel unfamiliar',body:'A first class is easier when you know what to expect.',cta:brand.cta},
-    {eyebrow:'A BETTER WAY',headline:'Begin with a gentle class',body:'A small-group introduction gives you room to learn.',cta:brand.cta},
+    {eyebrow:'WHAT GETS IN THE WAY',headline:'Starting yoga can feel unfamiliar',body:'A first class is easier when you know what to expect.'},
+    {eyebrow:'A BETTER WAY',headline:'Begin with a gentle class',body:'A small-group introduction gives you room to learn.'},
     {eyebrow:'THE OUTCOME',headline:'Learn a few new movements',body:'Try one welcoming class at your own pace.',cta:brand.cta}
   ]};fs.writeFileSync(path.join(run,'carousel-data.json'),JSON.stringify(carouselData));
   fs.writeFileSync(path.join(run,'copy/ads.json'),JSON.stringify({primaryText:'A welcoming first yoga class, at your own pace.',headline:'A calmer start',callToAction:'Book a class'}));
   const car=exec(['scripts/carousel.mjs',run]);assert.equal(car.status,0,car.stderr||car.stdout);
+  const carouselManifest=JSON.parse(fs.readFileSync(path.join(run,'carousel/manifest.json'),'utf8'));assert.deepEqual(carouselManifest.files.map(file=>file.showCta),[false,false,true]);assert.deepEqual(carouselManifest.files.map(file=>Boolean(file.measurements.cta)),[false,false,true]);
   const check=exec(['scripts/studio.mjs','check',run]);assert.equal(check.status,0,check.stderr||check.stdout);
   const sheet=exec(['scripts/studio.mjs','contact-sheet',run]);assert.equal(sheet.status,0,sheet.stderr||sheet.stdout);
   const handoff=exec(['scripts/studio.mjs','handoff',run]);assert.equal(handoff.status,0,handoff.stderr||handoff.stdout);

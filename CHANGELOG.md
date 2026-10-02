@@ -2,6 +2,8 @@
 
 ## 1.0.1
 
+- Centered carousel content in the safe area, kept counters at the bottom, and showed CTA buttons only on the last slide by default.
+- Updated the example proof run and confirmed the five tools: HookLab, Ad Images, Carousel Builder, HeyGen Ad Videos, and Video Editor.
 - Added complete example brand setup and worker data-format documentation.
 - Standardized creative filenames and added explicit, checked CTA buttons.
 - Matched carousel themes to the shared brand and added mixed creative handoffs.

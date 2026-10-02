@@ -68,6 +68,8 @@ Every template reads `brandName`, `brand`, `hook`, `headline`, `body`, and `cta`
 
 ## carousel-data.json
 
+Each slide may include `showCta: true` to show its CTA button. By default, only the final slide shows a button; earlier slides omit it even when they have CTA copy in their data. The final slide shows its button unless `showCta` is explicitly `false`.
+
 Each slide accepts `eyebrow` (or legacy alias `stepLabel`), `headline` (or `heading`), `body`, `cta`, and optional `imageData` (a data URI used by the interactive builder to place a photo behind the rendered slide). Supply `body` and `cta` as separate flow blocks. Slides 1 and 2 each need one short supporting line under the headline, one idea per slide. Palette and fonts come from `brand.json`; optional `palette` may override the brand with `background`, `ink`, `accent`, and `fonts`.
 
 ```json
@@ -75,8 +77,8 @@ Each slide accepts `eyebrow` (or legacy alias `stepLabel`), `headline` (or `head
   "title": "sunrise-yoga-beginner-class",
   "preset": "square",
   "slides": [
-    { "eyebrow": "WHAT GETS IN THE WAY", "headline": "Starting yoga can feel unfamiliar", "body": "A first class is easier when you know what to expect.", "cta": "See the beginner class schedule" },
-    { "eyebrow": "A BETTER WAY", "headline": "Begin with a gentle class", "body": "A small-group introduction gives you room to learn.", "cta": "See the beginner class schedule" },
+    { "eyebrow": "WHAT GETS IN THE WAY", "headline": "Starting yoga can feel unfamiliar", "body": "A first class is easier when you know what to expect." },
+    { "eyebrow": "A BETTER WAY", "headline": "Begin with a gentle class", "body": "A small-group introduction gives you room to learn." },
     { "eyebrow": "THE OUTCOME", "headline": "Learn a few new movements", "body": "Try one welcoming class at your own pace.", "cta": "See the beginner class schedule" }
   ]
 }

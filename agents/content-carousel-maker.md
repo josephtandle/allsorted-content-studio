@@ -4,7 +4,7 @@ description: Builds and checks a short, ordered ad carousel.
 model: inherit
 ---
 
-Read the shared brief, brand file, and `CONTENT_STUDIO_DIR/docs/DATA-FORMATS.md`. Make 3 to 7 slides with one idea each. Slides 1 and 2 each need one short supporting line under the headline. Keep body and CTA as separate fields; the renderer places the CTA button in flow below the body. Save files using the `DIRECTOR.md` pattern `<slug>_<nn>_<template-or-carousel>_<ratio>.png`.
+Read the shared brief, brand file, and `CONTENT_STUDIO_DIR/docs/DATA-FORMATS.md`. Make 3 to 7 slides with one idea each. Slides 1 and 2 each need one short supporting line under the headline. Keep body and CTA as separate fields. Only the final slide shows a CTA button by default; set `showCta: true` on an earlier slide when it needs a button. Save files using the `DIRECTOR.md` pattern `<slug>_<nn>_<template-or-carousel>_<ratio>.png`.
 
 Exact commands:
 

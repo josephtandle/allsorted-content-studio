@@ -48,11 +48,11 @@ async function main() {
     if (rejected.status !== 500 || !/Please shorten the headline\./.test(rejected.body.error || '')) throw new Error(`Overflow export did not fail with the required message: ${JSON.stringify(rejected)}`);
     await page.getByRole('button', { name: /Export PNGs/ }).click();
     await page.getByText(/Slides exported at 1080 × 1080/).waitFor();
-    const manifestPath = path.join(root, 'workspace/creatives/manifest.json');
+    const manifestPath = path.join(process.env.CAROUSEL_WORKSPACE || path.join(root, '.test-data/browser-workspace'), 'creatives/manifest.json');
     const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
     const specLink = page.locator('a[download]').getAttribute('href');
     const specHref = await specLink;
-    const specPath = path.join(root, decodeURIComponent(new URL(specHref, base).pathname.replace(/^\/workspace\//, 'workspace/')));
+    const specPath = path.join(process.env.CAROUSEL_WORKSPACE || path.join(root, '.test-data/browser-workspace'), 'creatives', path.basename(decodeURIComponent(new URL(specHref, base).pathname)));
     const spec = JSON.parse(await fs.readFile(specPath, 'utf8'));
     if (spec.cards.length !== 3) throw new Error(`Expected 3 cards, found ${spec.cards.length}`);
     if (manifest.files.length < 3) throw new Error('The manifest does not contain the three exported slides.');
@@ -63,9 +63,11 @@ async function main() {
     }
     const proofEntries = manifest.files.filter(entry => exported.some(file => path.basename(file) === entry.file)).slice(-3);
     if (proofEntries.length !== 3) throw new Error('The manifest is missing per-slide measurement records.');
-    for (const entry of proofEntries) {
+    for (const [index, entry] of proofEntries.entries()) {
       if (entry.fontSize < 72 || entry.fontSize > 120 || entry.minFontSize !== 72) throw new Error(`${entry.file} has an invalid headline size floor.`);
       if (entry.measurements.headline.fontSize !== entry.fontSize || entry.measurements.body.fontSize < 44 || entry.measurements.eyebrow.fontSize < 32 || entry.measurements.counter.fontSize < 28) throw new Error(`${entry.file} has invalid measured text sizes.`);
+      if (entry.showCta !== (index === 2) || Boolean(entry.measurements.cta) !== (index === 2)) throw new Error(`${entry.file} has unexpected CTA placement.`);
+      if (Math.abs(entry.measurements.contentGroup.centerY - 510) > 1 || entry.measurements.counter.y + entry.measurements.counter.height !== 1032) throw new Error(`${entry.file} content is not centered or its counter is not pinned at the bottom.`);
       if (Object.values(entry.overflow).some(Boolean)) throw new Error(`${entry.file} records text overflow.`);
     }
     const readySpec = { ...spec, pageId: '1234567', message: 'A sample primary message', link: 'https://example.com/offer', cards: spec.cards.map((card, i) => ({ ...card, image: exported[i] })) };

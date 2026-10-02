@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { pollJob } from '../scripts/heygen.mjs';
+const testRoot = path.join(path.dirname(path.dirname(new URL(import.meta.url).pathname)), '..', '..', '.test-data', 'heygen');
+fs.mkdirSync(testRoot, { recursive: true });
 
 test('restart polling reuses saved job ID and never submits a second job', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'heygen-resume-'));
+  const dir = fs.mkdtempSync(path.join(testRoot, 'heygen-resume-'));
   const jobsPath = path.join(dir, 'jobs.json');
   const jobs = [{ id: 'video-existing', status: 'waiting' }]; fs.writeFileSync(jobsPath, JSON.stringify(jobs));
   let calls = 0;

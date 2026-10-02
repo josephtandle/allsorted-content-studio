@@ -16,7 +16,7 @@ async function launchBrowser() { for(const executablePath of browserPaths()){try
 const { PRESETS, appendManifest, makeSpec } = require('../lib/core');
 const { renderSlides, slideMarkup } = require('../lib/slide-renderer');
 
-const testRoot = path.join(__dirname, '..', 'workspace', '.test-data');
+const testRoot = path.join(__dirname, '..', '..', '..', '.test-data', 'carousel-builder');
 
 test('Meta presets use the required pixel dimensions and safe zones', () => {
   assert.deepEqual([PRESETS.square.width, PRESETS.square.height], [1080, 1080]);
@@ -36,10 +36,18 @@ test('carousel CSS uses brand colors and fonts without an off-brand gradient', (
   assert.match(html,/font:700 120px\/1\.04 Georgia,serif/);
   assert.match(html,/font:400 44px\/1\.25 Arial,sans-serif/);
 });
+test('CTA appears on the last slide by default and earlier slides can opt in', () => {
+  const first = slideMarkup({ headline: 'First', cta: 'Book now' }, 0, 3, PRESETS.square, 'ocean');
+  const optedIn = slideMarkup({ headline: 'Second', cta: 'Book now', showCta: true }, 1, 3, PRESETS.square, 'ocean');
+  const last = slideMarkup({ headline: 'Last', cta: 'Book now' }, 2, 3, PRESETS.square, 'ocean');
+  assert.doesNotMatch(first, /id="cta"/);
+  assert.match(optedIn, /id="cta">Book now/);
+  assert.match(last, /id="cta">Book now/);
+});
 test('rendered slides meet the phone legibility floors and stay within measured safe boxes', async () => {
   const slides = [
     { stepLabel: 'A BETTER WAY', heading: 'Small steps make mornings easier', body: 'Choose one part of your morning to make easier.', cta: 'Book a class' },
-    { stepLabel: 'ONE PRACTICE', heading: 'Make room for a slower start', body: 'Pick one change you can repeat tomorrow.', cta: 'Book a class' },
+    { stepLabel: 'ONE PRACTICE', heading: 'Make room for a slower start', body: 'Pick one change you can repeat tomorrow.', cta: 'Book a class', showCta: true },
     { stepLabel: 'THE OUTCOME', heading: 'Begin with one gentle class', body: 'Try one class before changing your whole routine.', cta: 'Book a class' },
   ];
   const browser = await launchBrowser();
@@ -59,12 +67,16 @@ test('rendered slides meet the phone legibility floors and stay within measured 
     assert.ok(result.headlineFontSize >= 72 && result.headlineFontSize <= 120);
     assert.ok(result.elements.headline.fontSize >= 72);
     assert.ok(result.elements.body.fontSize >= 44);
-    assert.ok(result.elements.cta.background !== 'rgba(0, 0, 0, 0)');
+    assert.ok(result.elements.content);
+    assert.ok(Math.abs(result.elements.contentGroup.centerY - 510) <= 1);
+    assert.equal(Boolean(result.elements.cta), result === rendered[1] || result === rendered[2]);
+    if (result.elements.cta) assert.ok(result.elements.cta.background !== 'rgba(0, 0, 0, 0)');
     assert.equal(result.overflow.textOverlap, false);
     assert.ok(result.elements.eyebrow.fontSize >= 32);
     assert.ok(result.elements.counter.fontSize >= 28);
+    assert.equal(result.elements.counter.y + result.elements.counter.height, 1032);
     assert.deepEqual(Object.values(result.overflow).filter(Boolean), []);
-    for (const name of ['eyebrow', 'headline', 'body', 'cta', 'counter']) {
+    for (const name of ['eyebrow', 'headline', 'body', 'counter', ...(result.elements.cta ? ['cta'] : [])]) {
       const box = result.elements[name];
       assert.ok(box.x >= 64 && box.x + box.width <= 1016, `${name} remains inside 64px safe margins`);
       assert.ok(box.scrollWidth <= box.clientWidth && box.scrollHeight <= box.clientHeight + 4, `${name} fits its measured client box`);

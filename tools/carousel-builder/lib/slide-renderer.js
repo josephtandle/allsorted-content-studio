@@ -23,18 +23,22 @@ function slideMarkup(slide, index, total, preset, palette) {
   const accent = safeCss(theme.accent, DEFAULTS.accent);
   const display = safeCss(theme.fonts?.display, DEFAULTS.display);
   const body = safeCss(theme.fonts?.body, DEFAULTS.body);
+  const safeTop = preset.safeTop ? Math.round(preset.safeTop * preset.height) : 90;
+  const safeBottom = preset.safeBottom ? Math.round(preset.safeBottom * preset.height) : 150;
   const eyebrow = slide.eyebrow || slide.stepLabel || `IDEA ${String(index + 1).padStart(2, '0')}`;
   const headline = slide.headline || slide.heading || `Slide ${index + 1}`;
-  const cta = slide.cta || 'Learn more';
+  const showCta = slide.showCta === true || (slide.showCta !== false && index === total - 1);
+  const cta = showCta ? (slide.cta || 'Learn more') : '';
   return `<!doctype html><html><head><meta charset="utf-8"><style>
   *{box-sizing:border-box}html,body{margin:0;width:${preset.width}px;height:${preset.height}px;overflow:hidden}
-  #canvas{width:100%;height:100%;padding:90px 64px 84px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:26px;overflow:hidden;background:linear-gradient(140deg,${background},${background});color:${ink};font-family:${body},sans-serif}
+  #canvas{position:relative;width:100%;height:100%;padding:90px 64px 150px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:26px;overflow:hidden;background:linear-gradient(140deg,${background},${background});color:${ink};font-family:${body},sans-serif}
+  #content{position:absolute;left:64px;right:64px;top:${safeTop}px;bottom:${safeBottom}px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:26px;overflow:hidden}
   #eyebrow{max-width:900px;color:${accent};font:700 32px/1.2 ${body},sans-serif;letter-spacing:4px;overflow-wrap:anywhere}
   #headline{max-width:900px;max-height:420px;overflow:hidden;font:700 ${START_HEADLINE_SIZE}px/1.04 ${display},serif;letter-spacing:-2px;overflow-wrap:anywhere}
   #body{max-width:900px;max-height:240px;overflow:hidden;font:400 44px/1.25 ${body},sans-serif;white-space:pre-line;overflow-wrap:anywhere}
   #cta{display:inline-block;background:${accent};color:${ink};border:2px solid ${accent};border-radius:16px;padding:20px 32px;font:700 36px/1.2 ${body},sans-serif;max-width:900px;overflow-wrap:anywhere}
-  #counter{margin-top:auto;color:${ink};font:400 28px/1.2 ${body},sans-serif;opacity:.75}
-  </style></head><body><main id="canvas"><div id="eyebrow">${escapeHtml(eyebrow)}</div><div id="headline">${escapeHtml(headline)}</div><div id="body">${escapeHtml(slide.body || '')}</div>${cta ? `<div id="cta">${escapeHtml(cta)}</div>` : ''}<div id="counter">${String(index + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}</div></main></body></html>`;
+  #counter{position:absolute;left:64px;right:64px;bottom:48px;color:${ink};font:400 28px/1.2 ${body},sans-serif;opacity:.75}
+  </style></head><body><main id="canvas"><section id="content"><div id="eyebrow">${escapeHtml(eyebrow)}</div><div id="headline">${escapeHtml(headline)}</div><div id="body">${escapeHtml(slide.body || '')}</div>${cta ? `<div id="cta">${escapeHtml(cta)}</div>` : ''}</section><div id="counter">${String(index + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}</div></main></body></html>`;
 }
 
 async function renderSlides(slides, preset, palette, sharedBrowser = null) {
@@ -52,13 +56,17 @@ async function renderSlides(slides, preset, palette, sharedBrowser = null) {
           if (headline.scrollWidth <= headline.clientWidth + 1 && headline.scrollHeight <= headline.clientHeight + 4) break;
         }
         const elements = {};
-        for (const name of ['eyebrow', 'headline', 'body', 'cta', 'counter']) {
+        for (const name of ['content', 'eyebrow', 'headline', 'body', 'cta', 'counter']) {
           const element = document.querySelector(`#${name}`);
           if (!element) continue;
           const rect = element.getBoundingClientRect();
           const canvasRect = canvas.getBoundingClientRect();
           elements[name] = { x: Math.round(rect.x - canvasRect.x), y: Math.round(rect.y - canvasRect.y), width: Math.round(rect.width), height: Math.round(rect.height), scrollWidth: element.scrollWidth, scrollHeight: element.scrollHeight, clientWidth: element.clientWidth, clientHeight: element.clientHeight, fontSize: parseFloat(getComputedStyle(element).fontSize), background: getComputedStyle(element).backgroundColor, border: getComputedStyle(element).borderTopWidth };
         }
+        const children = [...document.querySelector('#content').children].map((element) => element.getBoundingClientRect());
+        const groupTop = Math.min(...children.map((rect) => rect.top)) - canvas.getBoundingClientRect().top;
+        const groupBottom = Math.max(...children.map((rect) => rect.bottom)) - canvas.getBoundingClientRect().top;
+        elements.contentGroup = { y: Math.round(groupTop), height: Math.round(groupBottom - groupTop), centerY: (groupTop + groupBottom) / 2 };
         const overflow = {};
         for (const [name, value] of Object.entries(elements)) overflow[name] = value.scrollWidth > value.clientWidth + 1 || value.scrollHeight > value.clientHeight + 4 || value.x < 64 || value.x + value.width > canvas.clientWidth - 64 || value.y < 0 || value.y + value.height > canvas.clientHeight;
         const textNames = Object.keys(elements).filter((name) => ['eyebrow', 'headline', 'body', 'cta'].includes(name));

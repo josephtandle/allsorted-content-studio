@@ -1,5 +1,7 @@
 # Install All Sorted Content Studio
 
+The studio includes five tools: HookLab, Ad Images, Carousel Builder, HeyGen Ad Videos, and Video Editor.
+
 Copy this prompt into your agent system:
 
 ```text

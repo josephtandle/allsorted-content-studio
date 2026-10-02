@@ -52,7 +52,7 @@ app.post('/api/export', async (req, res) => {
         image = sharp(source).resize(preset.width, preset.height, { fit: 'cover' }).composite([{ input: renderedSlides[i].png }]);
       }
       await image.png().toFile(path.join(dir, filename));
-      files.push({ file: filename, hook: slides[i].heading || headlineHook || `Slide ${i + 1}`, width: preset.width, height: preset.height, status: 'rendered', template: selectedPalette||palette, fontSize: renderedSlides[i].headlineFontSize, minFontSize: 72, layoutBox: [64 / preset.width, 0.19, 820 / preset.width, 0.64], measurements: renderedSlides[i].elements, overflow: renderedSlides[i].overflow });
+      files.push({ file: filename, hook: slides[i].heading || headlineHook || `Slide ${i + 1}`, width: preset.width, height: preset.height, status: 'rendered', showCta: slides[i].showCta === true || (slides[i].showCta !== false && i === slides.length - 1), template: selectedPalette||palette, fontSize: renderedSlides[i].headlineFontSize, minFontSize: 72, layoutBox: [64 / preset.width, 0.19, 820 / preset.width, 0.64], measurements: renderedSlides[i].elements, overflow: renderedSlides[i].overflow });
     }
     await appendManifest(dir, files, { offer, ratio: preset.ratio });
     const spec = makeSpec({ title, pageId, link, message, slides: files.map((file, i) => ({ ...file, heading: slides[i].heading })) });

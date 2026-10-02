@@ -20,13 +20,13 @@ Generate `brand/brand.json` from the source-of-truth Markdown using the schema i
 
 ## The five tools and workers
 
-- HookLab and `content-hook-writer` return ten ranked hooks in `copy/hooks.md`.
-- `content-copywriter` returns primary text, headline, and CTA in `copy/ads.md`.
-- Ad Images and `content-image-maker` return checked image variants.
-- Carousel Builder and `content-carousel-maker` return three to seven slides and a carousel spec.
-- HeyGen Ad Videos and `content-video-maker` return three scripts, and render only when connected and the user approved the cost.
-- Video Editor and `content-video-editor` return local trimmed, resized, or captioned clips under `video/`.
-- `content-checker` returns the QA table and contact sheet path.
+- HookLab, with `content-hook-writer`, returns ten ranked hooks in `copy/hooks.md`.
+- Ad Images, with `content-image-maker`, returns checked image variants.
+- Carousel Builder, with `content-carousel-maker`, returns three to seven slides and a carousel spec.
+- HeyGen Ad Videos, with `content-video-maker`, returns three scripts, and renders only when connected and the user approved the cost.
+- Video Editor, with `content-video-editor`, returns local trimmed, resized, or captioned clips under `video/`.
+
+The supporting `content-copywriter` returns primary text, headline, and CTA in `copy/ads.md`. The `content-checker` returns the QA table and contact sheet path.
 
 ## Brief and production
 

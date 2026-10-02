@@ -1,23 +1,22 @@
 {
-  "title": "sunrise-yoga",
+  "title": "Sunrise Yoga",
   "preset": "square",
   "theme": "dark",
   "slides": [
     {
-      "eyebrow": "WHAT GETS IN THE WAY",
+      "eyebrow": "A GENTLE START",
       "headline": "Starting yoga can feel unfamiliar",
-      "body": "A first class is easier when you know what to expect."
+      "body": "Knowing what to expect can make the first visit simpler."
     },
     {
-      "eyebrow": "A BETTER WAY",
-      "headline": "Begin with a gentle class",
-      "body": "A small-group introduction gives you room to learn."
+      "eyebrow": "A SMALL FIRST STEP",
+      "headline": "Begin with a welcoming class",
+      "body": "A beginner session gives you space to learn at your pace."
     },
     {
-      "eyebrow": "THE OUTCOME",
-      "headline": "Learn a few new movements",
-      "body": "Try one welcoming class at your own pace.",
-      "cta": "See the beginner class schedule"
+      "headline": "Explore a first class",
+      "body": "View class times and choose a session that fits.",
+      "keyword": "EXPLORE"
     }
   ]
 }

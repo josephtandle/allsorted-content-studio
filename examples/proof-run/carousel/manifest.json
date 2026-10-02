@@ -1,5 +1,6 @@
 {
-  "offer": "sunrise-yoga",
+  "offer": "Sunrise Yoga",
+  "format": "carousel",
   "ratio": "square",
   "files": [
     {
@@ -10,257 +11,29 @@
       "status": "rendered",
       "showCta": false,
       "overflow": false,
-      "fontSize": 116,
-      "minFontSize": 72,
-      "measurements": {
-        "content": {
-          "x": 64,
-          "y": 90,
-          "width": 952,
-          "height": 840,
-          "scrollWidth": 952,
-          "scrollHeight": 840,
-          "clientWidth": 952,
-          "clientHeight": 840,
-          "fontSize": 16,
-          "background": "rgba(0, 0, 0, 0)",
-          "border": "0px"
-        },
-        "eyebrow": {
-          "x": 64,
-          "y": 229,
-          "width": 462,
-          "height": 38,
-          "scrollWidth": 462,
-          "scrollHeight": 38,
-          "clientWidth": 462,
-          "clientHeight": 38,
-          "fontSize": 32,
-          "background": "rgba(0, 0, 0, 0)",
-          "border": "0px"
-        },
-        "headline": {
-          "x": 64,
-          "y": 293,
-          "width": 900,
-          "height": 362,
-          "scrollWidth": 900,
-          "scrollHeight": 366,
-          "clientWidth": 900,
-          "clientHeight": 362,
-          "fontSize": 116,
-          "background": "rgba(0, 0, 0, 0)",
-          "border": "0px"
-        },
-        "body": {
-          "x": 64,
-          "y": 681,
-          "width": 900,
-          "height": 110,
-          "scrollWidth": 900,
-          "scrollHeight": 110,
-          "clientWidth": 900,
-          "clientHeight": 110,
-          "fontSize": 44,
-          "background": "rgba(0, 0, 0, 0)",
-          "border": "0px"
-        },
-        "counter": {
-          "x": 64,
-          "y": 998,
-          "width": 952,
-          "height": 34,
-          "scrollWidth": 952,
-          "scrollHeight": 34,
-          "clientWidth": 952,
-          "clientHeight": 34,
-          "fontSize": 28,
-          "background": "rgba(0, 0, 0, 0)",
-          "border": "0px"
-        },
-        "contentGroup": {
-          "y": 229,
-          "height": 562,
-          "centerY": 509.9921875
-        }
-      }
+      "measurements": {}
     },
     {
       "file": "sunrise-yoga_02_carousel_square.png",
-      "hook": "Begin with a gentle class",
+      "hook": "Begin with a welcoming class",
       "width": 1080,
       "height": 1080,
       "status": "rendered",
       "showCta": false,
       "overflow": false,
-      "fontSize": 108,
-      "minFontSize": 72,
-      "measurements": {
-        "content": {
-          "x": 64,
-          "y": 90,
-          "width": 952,
-          "height": 840,
-          "scrollWidth": 952,
-          "scrollHeight": 840,
-          "clientWidth": 952,
-          "clientHeight": 840,
-          "fontSize": 16,
-          "background": "rgba(0, 0, 0, 0)",
-          "border": "0px"
-        },
-        "eyebrow": {
-          "x": 64,
-          "y": 297,
-          "width": 286,
-          "height": 38,
-          "scrollWidth": 286,
-          "scrollHeight": 38,
-          "clientWidth": 286,
-          "clientHeight": 38,
-          "fontSize": 32,
-          "background": "rgba(0, 0, 0, 0)",
-          "border": "0px"
-        },
-        "headline": {
-          "x": 64,
-          "y": 362,
-          "width": 900,
-          "height": 225,
-          "scrollWidth": 900,
-          "scrollHeight": 229,
-          "clientWidth": 900,
-          "clientHeight": 225,
-          "fontSize": 108,
-          "background": "rgba(0, 0, 0, 0)",
-          "border": "0px"
-        },
-        "body": {
-          "x": 64,
-          "y": 613,
-          "width": 900,
-          "height": 110,
-          "scrollWidth": 900,
-          "scrollHeight": 110,
-          "clientWidth": 900,
-          "clientHeight": 110,
-          "fontSize": 44,
-          "background": "rgba(0, 0, 0, 0)",
-          "border": "0px"
-        },
-        "counter": {
-          "x": 64,
-          "y": 998,
-          "width": 952,
-          "height": 34,
-          "scrollWidth": 952,
-          "scrollHeight": 34,
-          "clientWidth": 952,
-          "clientHeight": 34,
-          "fontSize": 28,
-          "background": "rgba(0, 0, 0, 0)",
-          "border": "0px"
-        },
-        "contentGroup": {
-          "y": 297,
-          "height": 425,
-          "centerY": 509.9921875
-        }
-      }
+      "measurements": {}
     },
     {
       "file": "sunrise-yoga_03_carousel_square.png",
-      "hook": "Learn a few new movements",
+      "hook": "Explore a first class",
       "width": 1080,
       "height": 1080,
       "status": "rendered",
       "showCta": true,
       "overflow": false,
-      "fontSize": 116,
-      "minFontSize": 72,
       "measurements": {
-        "content": {
-          "x": 64,
-          "y": 90,
-          "width": 952,
-          "height": 840,
-          "scrollWidth": 952,
-          "scrollHeight": 840,
-          "clientWidth": 952,
-          "clientHeight": 840,
-          "fontSize": 16,
-          "background": "rgba(0, 0, 0, 0)",
-          "border": "0px"
-        },
-        "eyebrow": {
-          "x": 64,
-          "y": 200,
-          "width": 280,
-          "height": 38,
-          "scrollWidth": 280,
-          "scrollHeight": 38,
-          "clientWidth": 280,
-          "clientHeight": 38,
-          "fontSize": 32,
-          "background": "rgba(0, 0, 0, 0)",
-          "border": "0px"
-        },
-        "headline": {
-          "x": 64,
-          "y": 264,
-          "width": 900,
-          "height": 362,
-          "scrollWidth": 900,
-          "scrollHeight": 366,
-          "clientWidth": 900,
-          "clientHeight": 362,
-          "fontSize": 116,
-          "background": "rgba(0, 0, 0, 0)",
-          "border": "0px"
-        },
-        "body": {
-          "x": 64,
-          "y": 652,
-          "width": 840,
-          "height": 55,
-          "scrollWidth": 840,
-          "scrollHeight": 55,
-          "clientWidth": 840,
-          "clientHeight": 55,
-          "fontSize": 44,
-          "background": "rgba(0, 0, 0, 0)",
-          "border": "0px"
-        },
         "cta": {
-          "x": 64,
-          "y": 733,
-          "width": 624,
-          "height": 87,
-          "scrollWidth": 620,
-          "scrollHeight": 83,
-          "clientWidth": 620,
-          "clientHeight": 83,
-          "fontSize": 36,
-          "background": "rgb(233, 130, 86)",
-          "border": "2px"
-        },
-        "counter": {
-          "x": 64,
-          "y": 998,
-          "width": 952,
-          "height": 34,
-          "scrollWidth": 952,
-          "scrollHeight": 34,
-          "clientWidth": 952,
-          "clientHeight": 34,
-          "fontSize": 28,
-          "background": "rgba(0, 0, 0, 0)",
-          "border": "0px"
-        },
-        "contentGroup": {
-          "y": 200,
-          "height": 620,
-          "centerY": 509.9921875
+          "background": "engine CTA slide"
         }
       }
     }

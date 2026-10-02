@@ -3,13 +3,12 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
+import { spawnSync } from 'node:child_process';
 
 const require=createRequire(import.meta.url);
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const { resolveStudioRoot } = require('./studio-root.cjs');
 const studioRoot = resolveStudioRoot(scriptDir, path.dirname(scriptDir));
-let chromium;
-try{chromium=require('playwright-core').chromium}catch{ try { chromium=require(path.join(studioRoot,'tools/carousel-builder/node_modules/playwright-core')).chromium; } catch {} }
 
 export function parseArgs(args) {
   const result = {};
@@ -149,24 +148,26 @@ export async function render({ templatePath, dataPath, data: suppliedData, outPa
   fs.writeFileSync(temp, html);
   fs.mkdirSync(path.dirname(path.resolve(outPath)), { recursive: true });
   const url=pathToFileURL(temp).href;
-  if(!chromium) throw new Error('Renderer dependency missing. Reinstall the studio dependencies.');
-  let instance;for(const executablePath of [...new Set([browser,...findBrowsers()])]){try{instance=await chromium.launch({executablePath,headless:true,args:['--no-sandbox','--allow-file-access-from-files']});break;}catch{}}if(!instance)throw new Error('Install Google Chrome to run the browser renderer.');
   try{
-    const page=await instance.newPage({viewport:{width:Number(width),height:Number(height)},deviceScaleFactor:1});
-    await page.goto(url,{waitUntil:'load'});
-    const diagnostics=await page.locator('#render-measurements').evaluate(node=>JSON.parse(decodeURIComponent(Array.from(atob(node.textContent.trim()),char=>'%'+char.charCodeAt(0).toString(16).padStart(2,'0')).join(''))));
+    let result;
+    for(const executablePath of [...new Set([browser,...findBrowsers()])]){
+      result=spawnSync(executablePath,['--headless','--no-sandbox','--disable-gpu','--allow-file-access-from-files',`--window-size=${Number(width)},${Number(height)}`,`--screenshot=${path.resolve(outPath)}`,'--dump-dom',url],{encoding:'utf8',maxBuffer:8*1024*1024});
+      if(result.status===0&&fs.existsSync(path.resolve(outPath)))break;
+    }
+    if(!result||result.status!==0||!fs.existsSync(path.resolve(outPath)))throw new Error('Install Google Chrome, Chromium or Microsoft Edge to run the browser renderer.');
+    const encoded=[...result.stdout.matchAll(/<pre id="render-measurements"[^>]*>([^<]+)<\/pre>/g)].at(-1)?.[1];
+    if(!encoded)throw new Error('Browser did not return the renderer measurements.');
+    const diagnostics=JSON.parse(Buffer.from(encoded,'base64').toString('utf8'));
     const overflows=diagnostics.elements.filter(item=>item.overflow);
     if(overflows.length){
       const details=overflows.map(item=>`${item.selector} (${item.fontSize}px at ${item.rect.x},${item.rect.y} ${item.rect.width}x${item.rect.height}, scroll ${item.scrollWidth}x${item.scrollHeight} client ${item.clientWidth}x${item.clientHeight}${item.overlaps.length?`, overlaps ${item.overlaps.join(',')}`:''})`).join(', ');
       const advice=[...new Set(overflows.map(overflowAdvice))].join(' ');
       throw new Error(`Image text still overflows. ${advice} Elements: ${details}`);
     }
-    await page.screenshot({path:path.resolve(outPath),animations:'disabled'});
     const dimensions=pngDimensions(outPath);
     if(dimensions.width!==Number(width)||dimensions.height!==Number(height)) throw new Error(`Expected ${width}x${height}; got ${dimensions.width}x${dimensions.height}`);
     return {...dimensions,measurements:diagnostics.elements,headlineFontSize:diagnostics.headlineFontSize};
   }finally{
-    await instance.close();
     try{fs.unlinkSync(temp)}catch{}
   }
 }

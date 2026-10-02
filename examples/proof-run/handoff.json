@@ -8,7 +8,7 @@
   "ads": [
     {
       "type": "carousel",
-      "name": "sunrise-yoga carousel",
+      "name": "Sunrise Yoga",
       "pageId": "FILL_IN_META_PAGE_ID",
       "message": "Take your first step with a welcoming class.",
       "primary_text": "Take your first step with a welcoming class.",
@@ -25,11 +25,11 @@
         },
         {
           "image": "./carousel/sunrise-yoga_02_carousel_square.png",
-          "headline": "Begin with a gentle class"
+          "headline": "Begin with a welcoming class"
         },
         {
           "image": "./carousel/sunrise-yoga_03_carousel_square.png",
-          "headline": "Learn a few new movements"
+          "headline": "View class times and choose a session"
         }
       ],
       "child_attachments": [
@@ -40,12 +40,12 @@
         },
         {
           "image": "./carousel/sunrise-yoga_02_carousel_square.png",
-          "headline": "Begin with a gentle class",
+          "headline": "Begin with a welcoming class",
           "link": ""
         },
         {
           "image": "./carousel/sunrise-yoga_03_carousel_square.png",
-          "headline": "Learn a few new movements",
+          "headline": "View class times and choose a session",
           "link": ""
         }
       ]
@@ -54,19 +54,19 @@
       "type": "image",
       "name": "A calmer start begins here",
       "pageId": "FILL_IN_META_PAGE_ID",
-      "message": "A welcoming first yoga class at your own pace.",
-      "primary_text": "A welcoming first yoga class at your own pace.",
+      "message": "A welcoming first yoga class, at your own pace.",
+      "primary_text": "A welcoming first yoga class, at your own pace.",
       "link": "FILL_IN_LANDING_PAGE_URL",
       "link_description": "View beginner class times",
       "callToAction": "BOOK_NOW",
       "cta_type": "BOOK_NOW",
       "status": "PAUSED",
-      "image": "./images/sunrise-yoga_01_hook-card_square.png",
+      "image": "./images/sunrise-yoga_01_hook-card_feed.png",
       "headline": "A calmer start"
     },
     {
       "type": "image",
-      "name": "Find your first class",
+      "name": "Make room for a first class",
       "pageId": "FILL_IN_META_PAGE_ID",
       "message": "Explore a calm introduction to yoga.",
       "primary_text": "Explore a calm introduction to yoga.",
@@ -75,8 +75,8 @@
       "callToAction": "SIGN_UP",
       "cta_type": "SIGN_UP",
       "status": "PAUSED",
-      "image": "./images/sunrise-yoga_02_problem-solution_square.png",
-      "headline": "Find your first class"
+      "image": "./images/sunrise-yoga_02_problem-solution_story.png",
+      "headline": "Find a first class"
     }
   ]
 }

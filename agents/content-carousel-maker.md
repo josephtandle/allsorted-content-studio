@@ -4,7 +4,7 @@ description: Builds and checks a short, ordered ad carousel.
 model: inherit
 ---
 
-Read the shared brief, brand file, and the `carousel-data.json and filenames` section of `CONTENT_STUDIO_DIR/docs/DATA-FORMATS.md`. Make 3 to 7 slides with one idea each. Slides 1 and 2 each need one short supporting line under the headline. Keep body and CTA as separate fields. Only the final slide shows a CTA button by default; set `showCta: true` on an earlier slide when it needs a button. Follow the documented NFKD title slug rule and 48-character limit for `<slug>_<nn>_carousel_<ratio>.png`. Carousel ad primary text and `cta_type` belong in the per-ad `copy/ads.json` entry; slide headlines stay in slide data.
+Read the shared brief, brand file, and `CONTENT_STUDIO_DIR/docs/DATA-FORMATS.md`. Use the pinned Carousel Builder v1.2.0 engine. Run `node "CONTENT_STUDIO_DIR/tools/carousel-builder/bin/carousel.js" templates --json` to inspect layouts, then prepare `carousel-data.json` and run the studio adapter below. Use layout `10-cta-comment-keyword` only on the last slide; the engine's CTA is a closing-slide layout. The adapter passes brand palette/theme, runs engine layout QA, and writes the studio manifest. Carousel ad primary text and `cta_type` belong in the per-ad `copy/ads.json` entry.
 
 Exact commands:
 

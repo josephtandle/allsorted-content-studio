@@ -2,7 +2,7 @@
 
 Ad Images helps small-business owners make Meta ad images and carousels with your agent workspace. The basic workflow asks for an offer, audience, problem, honest promise, landing page, and a few brand details. It then drafts and scores hooks, creates editable HTML slides, renders PNGs, checks the files, and prepares a carousel handoff.
 
-The basic workflow does not need an API key, paid image service, or npm packages. It needs Node.js 18 or later and a Chromium-based browser. If there is no supported browser, the renderer prints a Playwright fallback command. Templates use system fonts and work offline.
+The basic workflow needs Node.js 18 or later and Chrome, Chromium, or Edge. Optional integrations are documented here; the renderer has no mandatory npm packages. Templates use system fonts and work offline.
 
 ## Install on Mac or Linux
 

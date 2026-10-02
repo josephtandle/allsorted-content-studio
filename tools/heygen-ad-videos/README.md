@@ -10,7 +10,7 @@ Run `sh ./install.sh` on Mac or `./install.ps1` in PowerShell on Windows. The in
 
 The default workflow uses HeyGen's official your agent workspace MCP, OAuth sign-in, and no API key. It is intended for trial-scale use and bills the student's HeyGen web-plan credits. The optional Node helper supports API workflows, which use separate API billing. Its current REST endpoint assumptions are documented as unverified in `SKILL.md`.
 
-The API helper requires Node 18+, no npm install, and `HEYGEN_API_KEY` as an environment variable. Do not store it in a file, paste it into your writing agent, or share it. Set a deliberate spend cap in `config.json`; verify current prices in HeyGen before using the API route.
+The optional API helper requires Node 18+ and no npm install. To configure it, set `HEYGEN_API_KEY` in the operating system environment; never save it in a file or paste it into an agent. Set a deliberate spend cap in `config.json`; verify current prices in HeyGen before using the API route.
 
 ## Tests
 

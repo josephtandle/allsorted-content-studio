@@ -1,11 +1,11 @@
 {
   "files": [
     {
-      "file": "sunrise-yoga_01_hook-card_square.png",
+      "file": "sunrise-yoga_01_hook-card_feed.png",
       "hook": "A calmer start begins here",
       "width": 1080,
-      "height": 1080,
-      "ratio": "square",
+      "height": 1350,
+      "ratio": "feed",
       "template": "hook-card",
       "layoutBox": null,
       "status": "rendered",
@@ -26,7 +26,7 @@
           "clientWidth": 920,
           "rect": {
             "x": 80,
-            "y": 201,
+            "y": 364,
             "width": 920,
             "height": 39
           }
@@ -46,7 +46,7 @@
           "clientWidth": 900,
           "rect": {
             "x": 80,
-            "y": 313,
+            "y": 476,
             "width": 900,
             "height": 224
           }
@@ -56,19 +56,19 @@
           "selector": "p",
           "background": "rgba(0, 0, 0, 0)",
           "borderWidth": "0px",
-          "text": "Try a welcoming beginner class at your own pace.",
+          "text": "Try one gentle beginner class this week.",
           "fontSize": 46,
           "overflow": false,
           "overlaps": [],
-          "scrollHeight": 112,
-          "clientHeight": 112,
+          "scrollHeight": 56,
+          "clientHeight": 56,
           "scrollWidth": 900,
           "clientWidth": 900,
           "rect": {
             "x": 80,
-            "y": 611,
+            "y": 774,
             "width": 900,
-            "height": 112
+            "height": 56
           }
         },
         {
@@ -76,18 +76,18 @@
           "selector": "div.cta",
           "background": "rgb(233, 130, 86)",
           "borderWidth": "2px",
-          "text": "See the beginner class schedule",
+          "text": "See the class schedule",
           "fontSize": 38,
           "overflow": false,
           "overlaps": [],
           "scrollHeight": 82,
           "clientHeight": 82,
-          "scrollWidth": 643,
-          "clientWidth": 643,
+          "scrollWidth": 472,
+          "clientWidth": 472,
           "rect": {
             "x": 80,
-            "y": 793,
-            "width": 647,
+            "y": 900,
+            "width": 476,
             "height": 86
           }
         }
@@ -95,15 +95,20 @@
       "overflow": false
     },
     {
-      "file": "sunrise-yoga_02_problem-solution_square.png",
-      "hook": "Find your first class",
+      "file": "sunrise-yoga_02_problem-solution_story.png",
+      "hook": "Make room for a first class",
       "width": 1080,
-      "height": 1080,
-      "ratio": "square",
+      "height": 1920,
+      "ratio": "story",
       "template": "problem-solution",
-      "layoutBox": null,
+      "layoutBox": [
+        0.08,
+        0.14,
+        0.84,
+        0.66
+      ],
       "status": "rendered",
-      "headlineFontSize": 104,
+      "headlineFontSize": 120,
       "measurements": [
         {
           "index": 0,
@@ -116,12 +121,12 @@
           "overlaps": [],
           "scrollHeight": 39,
           "clientHeight": 39,
-          "scrollWidth": 920,
-          "clientWidth": 920,
+          "scrollWidth": 747,
+          "clientWidth": 747,
           "rect": {
-            "x": 80,
-            "y": 225,
-            "width": 920,
+            "x": 166,
+            "y": 332,
+            "width": 747,
             "height": 39
           }
         },
@@ -130,19 +135,19 @@
           "selector": "h1",
           "background": "rgba(0, 0, 0, 0)",
           "borderWidth": "0px",
-          "text": "Find your first class",
-          "fontSize": 104,
+          "text": "Make room for a first class",
+          "fontSize": 120,
           "overflow": false,
           "overlaps": [],
-          "scrollHeight": 232,
-          "clientHeight": 232,
-          "scrollWidth": 920,
-          "clientWidth": 920,
+          "scrollHeight": 382,
+          "clientHeight": 382,
+          "scrollWidth": 747,
+          "clientWidth": 747,
           "rect": {
-            "x": 80,
-            "y": 284,
-            "width": 920,
-            "height": 232
+            "x": 166,
+            "y": 429,
+            "width": 747,
+            "height": 382
           }
         },
         {
@@ -151,18 +156,18 @@
           "background": "rgba(0, 0, 0, 0)",
           "borderWidth": "0px",
           "text": "↓",
-          "fontSize": 44,
+          "fontSize": 52,
           "overflow": false,
           "overlaps": [],
-          "scrollHeight": 50,
-          "clientHeight": 50,
-          "scrollWidth": 920,
-          "clientWidth": 920,
+          "scrollHeight": 60,
+          "clientHeight": 60,
+          "scrollWidth": 747,
+          "clientWidth": 747,
           "rect": {
-            "x": 80,
-            "y": 537,
-            "width": 920,
-            "height": 50
+            "x": 166,
+            "y": 871,
+            "width": 747,
+            "height": 60
           }
         },
         {
@@ -170,19 +175,19 @@
           "selector": "p",
           "background": "rgba(0, 0, 0, 0)",
           "borderWidth": "0px",
-          "text": "Explore a calm introduction to yoga.",
-          "fontSize": 46,
+          "text": "Explore a welcoming introduction to yoga.",
+          "fontSize": 52,
           "overflow": false,
           "overlaps": [],
-          "scrollHeight": 64,
-          "clientHeight": 64,
-          "scrollWidth": 850,
-          "clientWidth": 850,
+          "scrollHeight": 123,
+          "clientHeight": 123,
+          "scrollWidth": 747,
+          "clientWidth": 747,
           "rect": {
-            "x": 80,
-            "y": 635,
-            "width": 850,
-            "height": 64
+            "x": 166,
+            "y": 1024,
+            "width": 747,
+            "height": 123
           }
         },
         {
@@ -190,19 +195,19 @@
           "selector": "div.cta",
           "background": "rgb(233, 130, 86)",
           "borderWidth": "2px",
-          "text": "See the beginner class schedule",
-          "fontSize": 38,
+          "text": "See the class schedule",
+          "fontSize": 54,
           "overflow": false,
           "overlaps": [],
-          "scrollHeight": 82,
-          "clientHeight": 82,
-          "scrollWidth": 643,
-          "clientWidth": 643,
+          "scrollHeight": 109,
+          "clientHeight": 109,
+          "scrollWidth": 663,
+          "clientWidth": 663,
           "rect": {
-            "x": 80,
-            "y": 770,
-            "width": 647,
-            "height": 86
+            "x": 166,
+            "y": 1278,
+            "width": 667,
+            "height": 113
           }
         }
       ],

@@ -1,0 +1,21 @@
+{
+  "id": "agent/video-editor/check-video-tools",
+  "layer": "agent",
+  "owner": "video-editor",
+  "title": "Check local video-editing tools are available",
+  "tags": ["video-editor", "video", "diagnostics"],
+  "phrases": [
+    "is ffmpeg installed",
+    "can I edit video locally right now",
+    "check my video editing tools",
+    "do I have what I need to trim a video",
+    "is caption burning supported on this machine",
+    "check video tools",
+    "what video operations can I run locally"
+  ],
+  "inputMode": "structured",
+  "requiredContext": [],
+  "outputMode": "text",
+  "fallbackPolicy": "worker_optional",
+  "handler": "./check-video-tools.js"
+}

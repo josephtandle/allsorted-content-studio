@@ -1,0 +1,7 @@
+{
+  "spendCapUsd": 5,
+  "usdPerMinute1080p": 2.2,
+  "usdPerMinute720p": 1.1,
+  "pollIntervalMs": 5000,
+  "pollTimeoutMs": 1800000
+}

@@ -1,0 +1,71 @@
+{
+  "offer": "sunrise-yoga-intro",
+  "format": "carousel",
+  "ratio": "square",
+  "brand": {
+    "brandName": "Sunrise Yoga Studio",
+    "colors": {
+      "background": "#FFF8EC",
+      "ink": "#25443B",
+      "accent": "#E98256"
+    },
+    "fonts": {
+      "display": "Georgia",
+      "body": "Arial"
+    }
+  },
+  "variations": [
+    {
+      "hookNumber": 1,
+      "template": "hook-card",
+      "hook": "Make room for a slower start",
+      "body": "A welcoming way to begin your morning practice.",
+      "cta": "See the class schedule",
+      "fontSize": 104
+    },
+    {
+      "hookNumber": 2,
+      "template": "problem-solution",
+      "hook": "A full calendar can make mornings feel rushed",
+      "body": "Try a guided class designed to help you begin at your own pace.",
+      "cta": "Explore beginner classes",
+      "fontSize": 104
+    },
+    {
+      "hookNumber": 3,
+      "template": "three-tips",
+      "hook": "Three ways to make a little space",
+      "tips": [
+        "Choose a time you can keep",
+        "Start with the basics",
+        "Bring questions to class"
+      ],
+      "cta": "Find a class that fits",
+      "fontSize": 104
+    },
+    {
+      "hookNumber": 4,
+      "template": "offer-card",
+      "hook": "Your first class starts here",
+      "body": "Meet the teachers and see if the studio feels right for you.",
+      "cta": "View intro options",
+      "fontSize": 104
+    },
+    {
+      "hookNumber": 5,
+      "template": "proof-card",
+      "hook": "A good first class starts with feeling welcome",
+      "proof": "Add a real, permissioned student quote here before publishing.",
+      "fontSize": 104,
+      "cta": "See the beginner class schedule"
+    },
+    {
+      "hookNumber": 6,
+      "template": "question-card",
+      "hook": "What would a calmer morning look like for you?",
+      "body": "Explore a beginner-friendly class at Sunrise Yoga Studio.",
+      "cta": "See the schedule",
+      "fontSize": 104
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "id": "agent/video-editor/resize-for-platform",
+  "layer": "agent",
+  "owner": "video-editor",
+  "title": "Resize a video to a social-platform preset",
+  "tags": ["video-editor", "video", "resize"],
+  "phrases": [
+    "make this a reel size",
+    "resize this video for instagram",
+    "convert this to 9:16 for tiktok",
+    "make this square for the feed",
+    "resize for youtube",
+    "reformat this clip for vertical video",
+    "crop this to fit a social platform"
+  ],
+  "safety": {
+    "destructive": false,
+    "notes": "Never edits the original file. Writes a new file to an explicit output directory and refuses to overwrite an existing output."
+  },
+  "inputMode": "structured",
+  "requiredContext": [],
+  "outputMode": "text",
+  "fallbackPolicy": "worker_optional",
+  "handler": "./resize-for-platform.js"
+}

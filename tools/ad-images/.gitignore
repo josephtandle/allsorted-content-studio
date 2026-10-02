@@ -1,0 +1,6 @@
+creatives/
+inputs/
+brand.json
+.env
+.env.*
+!.env.example

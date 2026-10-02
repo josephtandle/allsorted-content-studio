@@ -1,0 +1,98 @@
+{
+  "files": [
+    {
+      "file": "sunrise-yoga_01_offer-card_square.png",
+      "hook": "A calmer start begins here",
+      "width": 1080,
+      "height": 1080,
+      "ratio": "square",
+      "template": "offer-card",
+      "layoutBox": null,
+      "status": "rendered",
+      "headlineFontSize": 103,
+      "measurements": [
+        {
+          "index": 0,
+          "selector": "div.label",
+          "background": "rgba(0, 0, 0, 0)",
+          "borderWidth": "0px",
+          "text": "SUNRISE YOGA STUDIO",
+          "fontSize": 34,
+          "overflow": false,
+          "overlaps": [],
+          "scrollHeight": 39,
+          "clientHeight": 39,
+          "scrollWidth": 884,
+          "clientWidth": 884,
+          "rect": {
+            "x": 98,
+            "y": 253,
+            "width": 884,
+            "height": 39
+          }
+        },
+        {
+          "index": 1,
+          "selector": "h1",
+          "background": "rgba(0, 0, 0, 0)",
+          "borderWidth": "0px",
+          "text": "A calmer start begins here",
+          "fontSize": 103,
+          "overflow": false,
+          "overlaps": [],
+          "scrollHeight": 221,
+          "clientHeight": 221,
+          "scrollWidth": 884,
+          "clientWidth": 884,
+          "rect": {
+            "x": 98,
+            "y": 317,
+            "width": 884,
+            "height": 221
+          }
+        },
+        {
+          "index": 2,
+          "selector": "p",
+          "background": "rgba(0, 0, 0, 0)",
+          "borderWidth": "0px",
+          "text": "Try one gentle beginner class this week.",
+          "fontSize": 46,
+          "overflow": false,
+          "overlaps": [],
+          "scrollHeight": 62,
+          "clientHeight": 62,
+          "scrollWidth": 884,
+          "clientWidth": 884,
+          "rect": {
+            "x": 98,
+            "y": 609,
+            "width": 884,
+            "height": 62
+          }
+        },
+        {
+          "index": 3,
+          "selector": "div.cta",
+          "background": "rgb(233, 130, 86)",
+          "borderWidth": "2px",
+          "text": "See the beginner class schedule",
+          "fontSize": 38,
+          "overflow": false,
+          "overlaps": [],
+          "scrollHeight": 82,
+          "clientHeight": 82,
+          "scrollWidth": 643,
+          "clientWidth": 643,
+          "rect": {
+            "x": 98,
+            "y": 741,
+            "width": 647,
+            "height": 86
+          }
+        }
+      ],
+      "overflow": false
+    }
+  ]
+}

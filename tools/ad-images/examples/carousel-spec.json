@@ -1,0 +1,23 @@
+{
+  "name": "Offer carousel v1",
+  "pageId": "FILL_IN_META_PAGE_ID",
+  "message": "Primary text shown above the carousel.",
+  "link": "FILL_IN_LANDING_PAGE_URL",
+  "callToAction": "LEARN_MORE",
+  "optimizeOrder": false,
+  "endCard": true,
+  "cards": [
+    {
+      "image": "./outputs/sunrise-yoga_01_carousel_square.png",
+      "headline": "Slide 1"
+    },
+    {
+      "image": "./outputs/sunrise-yoga_02_carousel_square.png",
+      "headline": "Slide 2"
+    },
+    {
+      "image": "./outputs/sunrise-yoga_03_carousel_square.png",
+      "headline": "Slide 3"
+    }
+  ]
+}

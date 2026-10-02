@@ -1,0 +1,18 @@
+{
+  "brandName": "Sunrise Yoga Studio",
+  "brand": {
+    "brandName": "Sunrise Yoga Studio",
+    "colors": {
+      "background": "#FFF8EC",
+      "ink": "#25443B",
+      "accent": "#E98256"
+    },
+    "fonts": {
+      "display": "Georgia",
+      "body": "Arial"
+    }
+  },
+  "hook": "A little space to begin again",
+  "body": "Explore a welcoming morning class at your own pace.",
+  "cta": "See the beginner class schedule"
+}

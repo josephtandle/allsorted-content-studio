@@ -1,0 +1,4 @@
+{
+  "ffmpegBin": "{{FFMPEG_BIN}}",
+  "ffprobeBin": "{{FFPROBE_BIN}}"
+}

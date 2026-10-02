@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f5f1"><title>Carousel Builder</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="/"><span class="brand-mark">C</span><span>Carousel Builder<small>LOCAL CREATIVE WORKSHOP</small></span></a><button id="settings-open" class="quiet-button">Settings</button></header>
+  <main class="shell">
+    <section class="intro"><div><div class="eyebrow">MAKE SOMETHING WORTH SWIPING</div><h1>A carousel, built one clear step at a time.</h1><p>Shape the offer. Find the message. Export ready-to-use slides on your computer.</p></div><div class="intro-note"><span class="spark">✳</span><span>No account needed<br><b>Your files stay local</b></span></div></section>
+    <nav class="stepper" aria-label="Carousel steps" id="stepper"></nav>
+    <section class="workbench"><div class="step-content" id="step-content"></div><aside class="preview-panel"><div class="preview-top"><span class="eyebrow">LIVE PREVIEW</span><span id="preview-count">01 / 03</span></div><div id="slide-preview" class="slide-preview"></div><div class="preview-controls"><button id="preview-prev" aria-label="Previous slide">←</button><span id="preview-title">Your carousel</span><button id="preview-next" aria-label="Next slide">→</button></div><div class="preview-foot">A rough direction. Your exported slides are full resolution.</div></aside></section>
+    <footer><span>Built for clear ideas and useful creative.</span><button class="text-button" id="workspace-location"></button></footer>
+  </main>
+  <dialog id="settings-dialog"><form method="dialog" class="settings-card"><button class="dialog-x" aria-label="Close">×</button><div class="eyebrow">LOCAL SETTINGS</div><h2>Your workspace</h2><p>Projects, templates, and exports live in the workspace folder beside the app. Set <code>CAROUSEL_WORKSPACE</code> in <code>.env</code> to choose another folder.</p><div class="setting-line"><span>Pexels stock photo search</span><b id="pexels-status">Off</b></div><div class="setting-line"><span>AI caption help</span><b id="caption-status">Off</b></div><p class="small-note">Optional keys belong in your local <code>.env</code> file. They are never included in the app.</p><button class="primary-button">Done</button></form></dialog>
+  <script src="/app.js" defer></script>
+</body>
+</html>

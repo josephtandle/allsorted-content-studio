@@ -1,0 +1,26 @@
+{
+  "id": "agent/video-editor/status",
+  "layer": "agent",
+  "owner": "video-editor",
+  "title": "Check video editing configuration status",
+  "tags": ["video-editor", "status", "doctor", "configured", "video"],
+  "phrases": [
+    "is the video-editor configured",
+    "check video-editor status",
+    "check my video tool setup",
+    "do I need an api key to edit clips",
+    "which ffmpeg path will be used",
+    "why can I not trim my footage",
+    "is my clip editing ready to go"
+  ],
+  "actions": ["report-configuration-status"],
+  "safety": {
+    "destructive": false,
+    "notes": "Reads environment variables only. Runs no encoder, opens no media file, and changes nothing."
+  },
+  "inputMode": "structured",
+  "requiredContext": [],
+  "outputMode": "text",
+  "fallbackPolicy": "worker_optional",
+  "handler": "./status.js"
+}

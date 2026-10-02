@@ -1,0 +1,61 @@
+{
+  "status": "PAUSED",
+  "blanks": {
+    "pageId": "FILL_IN_META_PAGE_ID",
+    "link": "FILL_IN_LANDING_PAGE_URL",
+    "message": "FILL_IN_PRIMARY_MESSAGE"
+  },
+  "ads": [
+    {
+      "type": "carousel",
+      "name": "sunrise-yoga carousel",
+      "pageId": "FILL_IN_META_PAGE_ID",
+      "message": "FILL_IN_PRIMARY_MESSAGE",
+      "link": "FILL_IN_LANDING_PAGE_URL",
+      "callToAction": "BOOK_NOW",
+      "status": "PAUSED",
+      "cards": [
+        {
+          "image": "./carousel/sunrise-yoga_01_carousel_square.png",
+          "headline": "Starting yoga can feel unfamiliar"
+        },
+        {
+          "image": "./carousel/sunrise-yoga_02_carousel_square.png",
+          "headline": "Begin with a gentle class"
+        },
+        {
+          "image": "./carousel/sunrise-yoga_03_carousel_square.png",
+          "headline": "Learn a few new movements"
+        }
+      ],
+      "child_attachments": [
+        {
+          "image": "./carousel/sunrise-yoga_01_carousel_square.png",
+          "headline": "Starting yoga can feel unfamiliar",
+          "link": ""
+        },
+        {
+          "image": "./carousel/sunrise-yoga_02_carousel_square.png",
+          "headline": "Begin with a gentle class",
+          "link": ""
+        },
+        {
+          "image": "./carousel/sunrise-yoga_03_carousel_square.png",
+          "headline": "Learn a few new movements",
+          "link": ""
+        }
+      ]
+    },
+    {
+      "type": "image",
+      "name": "A calmer start begins here",
+      "pageId": "FILL_IN_META_PAGE_ID",
+      "message": "FILL_IN_PRIMARY_MESSAGE",
+      "link": "FILL_IN_LANDING_PAGE_URL",
+      "callToAction": "BOOK_NOW",
+      "status": "PAUSED",
+      "image": "./images/sunrise-yoga_01_offer-card_square.png",
+      "headline": "A calmer start"
+    }
+  ]
+}

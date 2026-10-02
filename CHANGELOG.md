@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4
+
+- Windows installer: safe browser detection and parity with the Mac installer, tested under PowerShell 7.
+
 ## 1.0.3
 
 - Made Carousel Builder browser proof self-contained with a local handoff validator, isolated server workspace, and repository path-escape guard.

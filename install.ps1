@@ -29,12 +29,44 @@ if ($check) {
   if ($missing -or $selfStatus -ne 0) { exit 1 }
   exit 0
 }
-$browsers=@((Join-Path $env:ProgramFiles 'Google/Chrome/Application/chrome.exe'),(Join-Path ${env:ProgramFiles(x86)} 'Google/Chrome/Application/chrome.exe'),(Join-Path $env:ProgramFiles 'Microsoft/Edge/Application/msedge.exe'),(Join-Path $env:LOCALAPPDATA 'Google/Chrome/Application/chrome.exe'),(Join-Path $env:LOCALAPPDATA 'Microsoft/Edge/Application/msedge.exe'))
-if (-not ($browsers | Where-Object { Test-Path $_ })) { throw 'Google Chrome or Microsoft Edge is required. Install either browser, then run this installer again.' }
+function Add-BrowserCandidate([System.Collections.Generic.List[string]]$Candidates, [string]$Base, [string]$Relative) {
+  if (-not [string]::IsNullOrWhiteSpace($Base)) { $Candidates.Add((Join-Path $Base $Relative)) }
+}
+$browsers=[System.Collections.Generic.List[string]]::new()
+if ($IsWindows -or $env:OS -eq 'Windows_NT') {
+  Add-BrowserCandidate $browsers $env:ProgramFiles 'Google/Chrome/Application/chrome.exe'
+  Add-BrowserCandidate $browsers ${env:ProgramFiles(x86)} 'Google/Chrome/Application/chrome.exe'
+  Add-BrowserCandidate $browsers $env:LOCALAPPDATA 'Google/Chrome/Application/chrome.exe'
+  Add-BrowserCandidate $browsers $env:ProgramFiles 'Microsoft/Edge/Application/msedge.exe'
+  Add-BrowserCandidate $browsers ${env:ProgramFiles(x86)} 'Microsoft/Edge/Application/msedge.exe'
+  Add-BrowserCandidate $browsers $env:LOCALAPPDATA 'Microsoft/Edge/Application/msedge.exe'
+  foreach ($key in @('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe','HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe','HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\msedge.exe','HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\msedge.exe')) {
+    try { $value=(Get-Item $key -ErrorAction Stop).GetValue(''); if ($value) { $browsers.Add([string]$value) } } catch {}
+  }
+  foreach ($name in @('chrome','msedge')) { $command=Get-Command $name -ErrorAction SilentlyContinue; if ($command) { $browsers.Add($command.Source) } }
+} elseif ($IsMacOS) {
+  foreach ($name in @('google-chrome','google-chrome-stable','microsoft-edge')) { $command=Get-Command $name -ErrorAction SilentlyContinue; if ($command) { $browsers.Add($command.Source) } }
+  foreach ($app in @('Google Chrome','Microsoft Edge')) { try { $null = & open -Ra $app 2>$null; if ($LASTEXITCODE -eq 0) { $browsers.Add('/Applications/' + $app + '.app') } } catch {} }
+  Add-BrowserCandidate $browsers $installHome 'Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+  Add-BrowserCandidate $browsers '/Applications' 'Google Chrome.app/Contents/MacOS/Google Chrome'
+  Add-BrowserCandidate $browsers '/Applications' 'Microsoft Edge.app/Contents/MacOS/Microsoft Edge'
+} else {
+  foreach ($name in @('google-chrome','google-chrome-stable','microsoft-edge')) { $command=Get-Command $name -ErrorAction SilentlyContinue; if ($command) { $browsers.Add($command.Source) } }
+}
+if (-not ($browsers | Where-Object { $_ -and (Test-Path $_) })) { throw 'Install Google Chrome or Microsoft Edge, then run this installer again.' }
 & $node.Source (Join-Path $src 'scripts/install-files.mjs') $src $dir $installHome
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 $carousel=Join-Path $dir 'tools/carousel-builder'
-if (-not $noNpm -and -not (Test-Path (Join-Path $carousel 'node_modules'))) { Push-Location $carousel; try { npm install; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } } finally { Pop-Location } }
+if (-not $noNpm -and -not (Test-Path (Join-Path $carousel 'node_modules'))) {
+  if ($IsWindows -or $env:OS -eq 'Windows_NT') { $npm=Get-Command npm.cmd -ErrorAction SilentlyContinue }
+  else { $npm=Get-Command npm -ErrorAction SilentlyContinue }
+  if (-not $npm) { $npm=Get-Command npm -ErrorAction SilentlyContinue }
+  if (-not $npm) { $npm=Get-Command npm.cmd -ErrorAction SilentlyContinue }
+  if (-not $npm) { throw 'npm is required to install Carousel Builder dependencies.' }
+  Push-Location $carousel
+  try { & $npm.Source install; $npmStatus=$LASTEXITCODE; if ($npmStatus -ne 0) { exit $npmStatus } }
+  finally { Pop-Location }
+}
 $env:CONTENT_STUDIO_DIR=$dir
 & $node.Source (Join-Path $dir 'scripts/studio.mjs') self-test --no-render
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

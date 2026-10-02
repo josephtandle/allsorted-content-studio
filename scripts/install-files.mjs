@@ -29,6 +29,7 @@ function expectedTree(source, ignorePersonal = false, rel = '') {
   for (const entry of fs.readdirSync(source, { withFileTypes: true })) {
     if (ignorePersonal && !rel && entry.name === 'personal') continue;
     const child = rel ? `${rel}/${entry.name}` : entry.name, full = path.join(source, entry.name);
+    if (child === '.git' || child.startsWith('.git/') || child.split('/').includes('node_modules') || child === '.test-data' || child.startsWith('.test-data/') || child.startsWith('runs/') || protectedPaths.has(child)) continue;
     if (entry.isDirectory()) for (const [name, bytes] of expectedTree(full, false, child)) output.set(name, bytes);
     else if (entry.isFile()) {
       let bytes = fs.readFileSync(full);
@@ -44,6 +45,7 @@ function actualTree(directory, ignorePersonal = false, rel = '') {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
     if (ignorePersonal && !rel && entry.name === 'personal') continue;
     const child = rel ? `${rel}/${entry.name}` : entry.name, full = path.join(directory, entry.name);
+    if (child === '.git' || child.startsWith('.git/') || child.split('/').includes('node_modules') || child === '.test-data' || child.startsWith('.test-data/') || child.startsWith('runs/') || protectedPaths.has(child)) continue;
     if (entry.isDirectory()) for (const [name, bytes] of actualTree(full, false, child)) output.set(name, bytes);
     else if (entry.isFile()) output.set(child, fs.readFileSync(full));
   }

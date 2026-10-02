@@ -3,3 +3,6 @@ Tag: v1.2.0
 Commit: ccfc768
 Date: 2026-10-02
 Copied from the verified engine snapshot without .git
+
+Local Content Studio kit adaptation: display headings use weight 700; the closing layout renders the run's
+button wording in a readable, normal-case button with its supporting line below. Engine source is unchanged.

@@ -12,14 +12,13 @@ const safeSlug = value => String(value || 'creative').normalize('NFKD').replace(
 const run = path.resolve(process.argv[2] || '');
 if (!run || !fs.existsSync(path.join(run, 'brief.md'))) throw new Error('Usage: node scripts/carousel.mjs RUN_DIR (run must contain brief.md)');
 const input = JSON.parse(fs.readFileSync(path.join(run, 'carousel-data.json'), 'utf8'));
-if (!input.cta) {
-  try {
-    const copy = JSON.parse(fs.readFileSync(path.join(run, 'copy/ads.json'), 'utf8'));
-    const carouselCopy = (copy.ads || []).find(ad => [ad.creative, ad.file].includes('carousel/carousel-spec.json'));
-    input.cta = carouselCopy?.cta_type;
-    input.message = carouselCopy?.primary_text;
-  } catch {}
-}
+let carouselCopy;
+try {
+  const copy = JSON.parse(fs.readFileSync(path.join(run, 'copy/ads.json'), 'utf8'));
+  carouselCopy = (copy.ads || []).find(ad => [ad.creative, ad.file].includes('carousel/carousel-spec.json'));
+} catch {}
+input.cta ||= carouselCopy?.cta_type;
+input.message ||= carouselCopy?.primary_text;
 const slides = input.slides;
 if (!Array.isArray(slides) || slides.length < 2 || slides.length > 10) throw new Error('carousel-data.json needs 2 to 10 slides');
 if (slides.some((slide, index) => slide?.layout === '10-cta-comment-keyword' && index !== slides.length - 1 && slide.showCta !== true)) throw new Error('The engine CTA closing layout belongs on the last slide. Set showCta: true to opt into an earlier CTA.');
@@ -36,14 +35,16 @@ const engineBrand = {
   fonts: { display: { family: brand.fonts?.display || 'Georgia' }, body: { family: brand.fonts?.body || 'Arial' } },
   chrome: { showByline: false, showCounter: true, showProgress: true, showCue: false, showCorners: false },
 };
+const closingSlide = slides.at(-1) || {};
+const ctaText = carouselCopy?.button_text || input.cta_text || input.ctaText || closingSlide.cta || closingSlide.button_text || brand.cta || closingSlide.keyword || '';
 const layout = input.layout || '01-editorial-statement';
 const deck = { title: input.title || 'Carousel', size: 'square', caption: input.message || '', slides: slides.map((slide, index) => {
   if (slide.layout) return { ...slide };
   const headline = slide.headline || slide.heading || slide.title || '';
-  if (index === slides.length - 1) return { layout: '10-cta-comment-keyword', lead: slide.eyebrow || 'Take the next step', keyword: String(slide.keyword || headline).trim().split(/\s+/).slice(0, 2).join(' ').toUpperCase(), promise: slide.body || headline, byline: '' };
-  return { layout, headline, body: slide.body || '' };
+  if (index === slides.length - 1) return { layout: '10-cta-comment-keyword', lead: slide.eyebrow || 'Take the next step', keyword: ctaText || slide.keyword || headline, promise: slide.body || '', byline: '' };
+  return { layout, headline, eyebrow: slide.eyebrow || '', sub: slide.body || slide.sub || '' };
 }) };
-const dataDir = path.join(run, '.carousel'); fs.mkdirSync(dataDir, { recursive: true });
+const dataDir = path.join(studio, '.test-data', `carousel-${safeSlug(path.basename(run))}`); fs.mkdirSync(dataDir, { recursive: true });
 fs.writeFileSync(path.join(dataDir, 'brand.json'), `${JSON.stringify(engineBrand, null, 2)}\n`);
 const deckFile = path.join(dataDir, 'studio-deck.json'); fs.writeFileSync(deckFile, `${JSON.stringify(deck, null, 2)}\n`);
 const output = path.join(run, 'carousel'); fs.mkdirSync(output, { recursive: true });

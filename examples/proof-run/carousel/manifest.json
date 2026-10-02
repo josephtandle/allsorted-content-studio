@@ -33,7 +33,8 @@
       "overflow": false,
       "measurements": {
         "cta": {
-          "background": "engine CTA slide"
+          "background": "#E98256",
+          "border": "0px"
         }
       }
     }

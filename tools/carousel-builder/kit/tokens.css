@@ -165,7 +165,7 @@ body {
 
 /* ---------- TYPE ---------- */
 .label, .eyebrow { font-size: var(--t-label); font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--text-55); line-height: 1.2; }
-.display { font-family: var(--font-display); font-weight: 400; line-height: 1.06; letter-spacing: -.012em; color: var(--text); }
+.display { font-family: var(--font-display); font-weight: 700; line-height: 1.06; letter-spacing: -.012em; color: var(--text); }
 /* the accent: one italic word in the soft accent colour. A template whose accent is an element (a number, a pill,
    a lit bar) switches the colour off with .no-accent so each slide carries exactly one accent. */
 .display em, .accent em { font-style: italic; color: var(--accent-soft); margin-right: .04em; }   /* the slant leans into the next word: give it room */

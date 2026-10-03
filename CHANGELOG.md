@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.4 (2026-10-04)
+
+- Fix: `scripts/self-update.js` now runs in a fresh clone. The studio's package.json makes .js files ES modules, so the updater (CommonJS) died at its first `require`. `scripts/package.json` marks that folder as CommonJS; every command, path and document stays the same.
+
 ## 1.1.3
 
 - Weekly self-update: the installer schedules `scripts/self-update.js`, which keeps this clone on the latest release once a week, backs up your brand, learnings and runs first, and rolls back if the self-test fails. Turn it off with `node scripts/self-update.js --off`, or skip scheduling with CONTENT_STUDIO_SKIP_UPDATES=1.

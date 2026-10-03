@@ -11,7 +11,36 @@
       "status": "rendered",
       "showCta": false,
       "overflow": false,
-      "measurements": {}
+      "expectedTextKinds": [
+        "supporting",
+        "eyebrow",
+        "counter"
+      ],
+      "measurements": {
+        "text": [
+          {
+            "kind": "counter",
+            "fontSize": 28,
+            "color": "rgb(233, 130, 86)",
+            "canvas": "rgb(37, 68, 59)",
+            "contrastRatio": 3.958091757694918
+          },
+          {
+            "kind": "eyebrow",
+            "fontSize": 32,
+            "color": "rgb(255, 248, 236)",
+            "canvas": "rgb(37, 68, 59)",
+            "contrastRatio": 10.103387064908325
+          },
+          {
+            "kind": "supporting",
+            "fontSize": 44,
+            "color": "rgb(255, 248, 236)",
+            "canvas": "rgb(37, 68, 59)",
+            "contrastRatio": 10.103387064908325
+          }
+        ]
+      }
     },
     {
       "file": "sunrise-yoga_02_carousel_square.png",
@@ -21,7 +50,36 @@
       "status": "rendered",
       "showCta": false,
       "overflow": false,
-      "measurements": {}
+      "expectedTextKinds": [
+        "supporting",
+        "eyebrow",
+        "counter"
+      ],
+      "measurements": {
+        "text": [
+          {
+            "kind": "counter",
+            "fontSize": 28,
+            "color": "rgb(233, 130, 86)",
+            "canvas": "rgb(37, 68, 59)",
+            "contrastRatio": 3.958091757694918
+          },
+          {
+            "kind": "eyebrow",
+            "fontSize": 32,
+            "color": "rgb(255, 248, 236)",
+            "canvas": "rgb(37, 68, 59)",
+            "contrastRatio": 10.103387064908325
+          },
+          {
+            "kind": "supporting",
+            "fontSize": 44,
+            "color": "rgb(255, 248, 236)",
+            "canvas": "rgb(37, 68, 59)",
+            "contrastRatio": 10.103387064908325
+          }
+        ]
+      }
     },
     {
       "file": "sunrise-yoga_03_carousel_square.png",
@@ -31,7 +89,34 @@
       "status": "rendered",
       "showCta": true,
       "overflow": false,
+      "expectedTextKinds": [
+        "supporting",
+        "counter"
+      ],
       "measurements": {
+        "text": [
+          {
+            "kind": "counter",
+            "fontSize": 28,
+            "color": "rgb(233, 130, 86)",
+            "canvas": "rgb(37, 68, 59)",
+            "contrastRatio": 3.958091757694918
+          },
+          {
+            "kind": "eyebrow",
+            "fontSize": 32,
+            "color": "rgb(255, 248, 236)",
+            "canvas": "rgb(37, 68, 59)",
+            "contrastRatio": 10.103387064908325
+          },
+          {
+            "kind": "supporting",
+            "fontSize": 44,
+            "color": "rgb(255, 248, 236)",
+            "canvas": "rgb(37, 68, 59)",
+            "contrastRatio": 10.103387064908325
+          }
+        ],
         "cta": {
           "background": "#E98256",
           "border": "0px"

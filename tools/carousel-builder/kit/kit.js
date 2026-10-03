@@ -225,7 +225,11 @@
       const targets = Array.from(box.querySelectorAll("[data-fit]"));
       if (box.hasAttribute("data-fit")) targets.unshift(box);
       const base = targets.map((t) => parseFloat(getComputedStyle(t).fontSize));
-      const floor = base.map((px, i) => Math.min(px, Number(targets[i].getAttribute("data-fit-floor")) || FIT_FLOOR));
+      const floor = base.map((px, i) => {
+        const el = targets[i];
+        const semanticFloor = el.matches(".body") ? 44 : el.matches(".eyebrow, .label, .pt") ? 32 : FIT_FLOOR;
+        return Math.min(px, Number(el.getAttribute("data-fit-floor")) || semanticFloor);
+      });
       const min = parseFloat(box.getAttribute("data-fit-min") || "0.4");
       let s = 1;
       while (boxOverflows(box, targets) && s > min) {
@@ -348,14 +352,41 @@
     const slide = document.querySelector(".slide").getBoundingClientRect();
     if (Math.round(slide.width) !== W || Math.round(slide.height) !== H) issues.push("canvas is " + slide.width + "x" + slide.height + ", expected " + W + "x" + H);
 
+    const luminance = (r, g, b) => {
+      const channel = (value) => { value /= 255; return value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4); };
+      return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+    };
+    const rgb = (value) => {
+      const match = String(value).match(/rgba?\(\s*([\d.]+)[, ]+\s*([\d.]+)[, ]+\s*([\d.]+)(?:\s*[,/]\s*([\d.]+))?\s*\)/i);
+      return match ? [Number(match[1]), Number(match[2]), Number(match[3]), match[4] === undefined ? 1 : Number(match[4])] : null;
+    };
+    const mix = (front, back) => front.map((value, i) => value * front[3] + back[i] * (1 - front[3]));
+    const contrastRatio = (foreground, background) => {
+      const f = rgb(foreground), b = rgb(background);
+      if (!f || !b) return null;
+      const opaqueBackground = b[3] < 1 ? mix(b, [0, 0, 0]) : b;
+      const opaqueForeground = f[3] < 1 ? mix(f, opaqueBackground) : f;
+      const L1 = luminance(...opaqueForeground), L2 = luminance(...opaqueBackground);
+      return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
+    };
+    const canvas = getComputedStyle(document.body).backgroundColor;
+    const textMeasurements = [];
+    document.querySelectorAll(".body, .pt, .eyebrow, .count").forEach((el) => {
+      if (!el.getClientRects().length || !el.innerText.trim()) return;
+      const style = getComputedStyle(el);
+      textMeasurements.push({ kind: el.matches(".body") ? "supporting" : el.matches(".pt") ? "visible" : el.matches(".eyebrow") ? "eyebrow" : "counter", fontSize: parseFloat(style.fontSize), color: style.color, canvas, contrastRatio: contrastRatio(style.color, canvas) });
+    });
     const scales = {};
     document.querySelectorAll("[data-fit-box]").forEach((b, i) => { scales[b.id || "box" + i] = Number(b.getAttribute("data-fit-scale")); });
-    return { ok: issues.length === 0, issues, textElements: boxes.length, fitScales: scales, size: SIZE, width: W, height: H };
+    // The studio opts into this diagnostic without changing the engine's ordinary fit-scale contract.
+    if (document.documentElement.hasAttribute("data-studio-qa")) scales.__studioTextMeasurements = textMeasurements;
+    return { ok: issues.length === 0, issues, textElements: boxes.length, textMeasurements, fitScales: scales, size: SIZE, width: W, height: H };
   }
 
   async function run() {
     const c = readContent();
     const slide = document.querySelector(".slide");
+    if (c._studioQa === true) document.documentElement.setAttribute("data-studio-qa", "");
     applySize(c);
     if (c.theme === "deep") slide.classList.add("is-deep");
     injectChrome(slide, c);

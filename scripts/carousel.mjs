@@ -39,10 +39,10 @@ const closingSlide = slides.at(-1) || {};
 const ctaText = carouselCopy?.button_text || input.cta_text || input.ctaText || closingSlide.cta || closingSlide.button_text || brand.cta || closingSlide.keyword || '';
 const layout = input.layout || '01-editorial-statement';
 const deck = { title: input.title || 'Carousel', size: 'square', caption: input.message || '', slides: slides.map((slide, index) => {
-  if (slide.layout) return { ...slide };
+  if (slide.layout) return { ...slide, _studioQa: true };
   const headline = slide.headline || slide.heading || slide.title || '';
-  if (index === slides.length - 1) return { layout: '10-cta-comment-keyword', lead: slide.eyebrow || 'Take the next step', keyword: ctaText || slide.keyword || headline, promise: slide.body || '', byline: '' };
-  return { layout, headline, eyebrow: slide.eyebrow || '', sub: slide.body || slide.sub || '' };
+  if (index === slides.length - 1) return { layout: '10-cta-comment-keyword', lead: slide.eyebrow || 'Take the next step', keyword: ctaText || slide.keyword || headline, promise: slide.body || '', byline: '', _studioQa: true };
+  return { layout, headline, eyebrow: slide.eyebrow || '', sub: slide.body || slide.sub || '', _studioQa: true };
 }) };
 const dataDir = path.join(studio, '.test-data', `carousel-${safeSlug(path.basename(run))}`); fs.mkdirSync(dataDir, { recursive: true });
 fs.writeFileSync(path.join(dataDir, 'brand.json'), `${JSON.stringify(engineBrand, null, 2)}\n`);
@@ -54,6 +54,13 @@ const render = spawnSync(process.execPath, [engine, 'render', deckFile, '--size'
 if (render.status !== 0) throw new Error((render.stderr || render.stdout).trim());
 let result; try { result = JSON.parse(render.stdout); } catch { throw new Error(`Carousel engine returned invalid JSON: ${render.stdout}`); }
 if (result.status !== 'ok' || result.metadata?.qa?.ok === false) throw new Error(`Carousel render/QA failed: ${JSON.stringify(result.metadata || result)}`);
+// The engine's render recipe intentionally omits DOM presentation metrics from its public API.
+// Run the same deck through its local QA renderer so the studio manifest can retain measured type.
+const measuredDir = path.join(dataDir, 'studio-qa-render');
+const measuredResultPath = path.join(dataDir, 'studio-qa-result.json');
+const measuredRender = spawnSync(process.execPath, [path.join(studio, 'tools/carousel-builder/render.mjs'), '--deck', deckFile, '--out-dir', measuredDir, '--size', size, '--brand', path.join(dataDir, 'brand.json'), '--base-dir', studio, '--data-dir', dataDir, '--result', measuredResultPath], { cwd: studio, env, encoding: 'utf8' });
+if (measuredRender.status !== 0) throw new Error(`Carousel text measurement failed: ${(measuredRender.stderr || measuredRender.stdout).trim()}`);
+let measured; try { measured = JSON.parse(fs.readFileSync(measuredResultPath, 'utf8')); } catch { throw new Error('Carousel text measurement returned invalid JSON'); }
 const engineExportDir = result.metadata?.exportDir;
 const files = (result.metadata?.files || []).map((file, i) => {
   const source = typeof file === 'string' ? file : file.file || file.path;
@@ -65,8 +72,13 @@ for (const [index, file] of files.entries()) {
   const target = path.join(output, file.name);
   if (fs.existsSync(target) && !process.argv.includes('--overwrite')) throw new Error(`Refusing to overwrite existing creative: ${target}. Use --overwrite to replace it.`);
   if (file.source !== target) fs.copyFileSync(file.source, target);
-  manifest.files.push({ file: file.name, hook: file.slide.headline || file.slide.heading || file.slide.title || file.slide.keyword || '', width: 1080, height: size === 'square' ? 1080 : size === 'story' ? 1920 : 1350, status: 'rendered', showCta: index === files.length - 1, overflow: !(result.metadata?.qa?.ok ?? true), measurements: { cta: index === files.length - 1 ? { background: engineBrand.colors.accent, border: '0px' } : undefined } });
+  const slideQa = measured.slides?.[index];
+  const expectsSupporting = Boolean(file.slide.body || file.slide.sub || file.slide.promise);
+  const expectsEyebrow = Boolean(file.slide.eyebrow || file.slide.lead);
+  const expectsVisible = Boolean(file.slide.prompt);
+  manifest.files.push({ file: file.name, hook: file.slide.headline || file.slide.heading || file.slide.title || file.slide.keyword || '', width: 1080, height: size === 'square' ? 1080 : size === 'story' ? 1920 : 1350, status: 'rendered', showCta: index === files.length - 1, overflow: !(slideQa?.ok ?? result.metadata?.qa?.ok ?? true), expectedTextKinds: [...(expectsSupporting ? ['supporting'] : []), ...(expectsVisible ? ['visible'] : []), ...(expectsEyebrow ? ['eyebrow'] : []), 'counter'], measurements: { text: slideQa?.fitScales?.__studioTextMeasurements || [], cta: index === files.length - 1 ? { background: engineBrand.colors.accent, border: '0px' } : undefined } });
 }
+fs.rmSync(measuredDir, { recursive: true, force: true });fs.rmSync(measuredResultPath, { force: true });
 fs.writeFileSync(path.join(output, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 const exportMeta = spawnSync(process.execPath, [engine, 'export-meta', result.metadata?.id, '--cta', input.cta || 'LEARN_MORE', '--data', dataDir, '--json'], { cwd: studio, env, encoding: 'utf8' });
 if (exportMeta.status !== 0) throw new Error(`Engine export-meta failed: ${(exportMeta.stderr || exportMeta.stdout).trim()}`);

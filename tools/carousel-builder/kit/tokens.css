@@ -53,8 +53,8 @@
   --t-h1: calc(124px * var(--k));       /* cover claim, step title, the new way, list title */
   --t-h2: calc(96px * var(--k));        /* chart and grid headlines, the unit line, the old way, the quote */
   --t-h3: calc(68px * var(--k));        /* list rows, grid cells, bar values, the promise */
-  --t-body: calc(42px * var(--k));      /* supporting line */
-  --t-label: max(26px, calc(28px * var(--k)));  /* small caps labels: never below 26px */
+  --t-body: max(44px, calc(42px * var(--k))); /* supporting line: never below the single-image 1080px floor */
+  --t-label: max(32px, calc(28px * var(--k)));  /* small caps labels */
 
   /* ---------- ONE SPACING SCALE ---------- */
   --s-1: calc(12px * var(--k));
@@ -132,7 +132,7 @@ body {
 .sig-top .byline { font-size: 24px; font-weight: 600; letter-spacing: .02em; color: var(--text-70); white-space: nowrap; }
 .sig-top .byline strong { color: var(--text); font-weight: 700; }
 .sig-top .byline em { font-style: normal; color: var(--accent-soft); }
-.sig-top .count { font-size: 22px; font-weight: 700; letter-spacing: .16em; color: var(--accent-soft); white-space: nowrap; }
+.sig-top .count { font-size: max(28px, calc(22px * var(--k))); font-weight: 700; letter-spacing: .16em; color: var(--accent-soft); white-space: nowrap; }
 
 /* Optional progress bar + swipe cue */
 .sig-bottom {
@@ -164,7 +164,7 @@ body {
 [data-fit-box] { min-height: 0; }
 
 /* ---------- TYPE ---------- */
-.label, .eyebrow { font-size: var(--t-label); font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--text-55); line-height: 1.2; }
+.label, .eyebrow { font-size: var(--t-label); font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--text); line-height: 1.2; }
 .display { font-family: var(--font-display); font-weight: 700; line-height: 1.06; letter-spacing: -.012em; color: var(--text); }
 /* the accent: one italic word in the soft accent colour. A template whose accent is an element (a number, a pill,
    a lit bar) switches the colour off with .no-accent so each slide carries exactly one accent. */
@@ -173,7 +173,7 @@ body {
 .display strong { font-weight: 600; color: var(--highlight); }
 /* inline accents use a different font file; keep them from growing the line box */
 .display em, .display strong, .body em, .body strong { line-height: 0; }
-.body { font-size: var(--t-body); line-height: 1.4; color: var(--text-70); font-weight: 500; max-width: var(--measure); }
+.body { font-size: var(--t-body); line-height: 1.4; color: var(--text); font-weight: 500; max-width: var(--measure); }
 .body strong { color: var(--text); font-weight: 700; }
 .body em { font-style: normal; color: inherit; font-weight: 700; }
 /* big figures sit a hair left of the margin: pull them back so their ink lines up with the text below */
@@ -181,7 +181,7 @@ body {
 .figure { font-family: var(--font-display); font-weight: 500; line-height: 1.1; letter-spacing: -.03em; white-space: nowrap; color: var(--accent); margin-left: max(-10px, -.035em); }
 .rule { width: 96px; height: 4px; border-radius: 2px; background: var(--accent); flex: none; }
 /* a photo behind the copy: lift the supporting copy to full strength and seat the type on a soft shadow */
-.slide.has-bg .body, .slide.has-bg .label, .slide.has-bg .eyebrow { color: rgba(var(--text-rgb), .92); }
+.slide.has-bg .body, .slide.has-bg .label, .slide.has-bg .eyebrow { color: var(--text); }
 .slide.has-bg .display, .slide.has-bg .body { text-shadow: 0 2px 28px rgba(var(--bg-rgb), .55); }
 
 /* balanced headlines, no orphans in body copy, lining figures for numbers */

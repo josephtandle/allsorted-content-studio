@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.3
+
+- Weekly self-update: the installer schedules `scripts/self-update.js`, which keeps this clone on the latest release once a week, backs up your brand, learnings and runs first, and rolls back if the self-test fails. Turn it off with `node scripts/self-update.js --off`, or skip scheduling with CONTENT_STUDIO_SKIP_UPDATES=1.
+- Added a `selftest` script (the studio's no-render self-test: no browser, no network) that the updater runs after each update.
+
 ## 1.1.2
 
 - Licensed under the All Sorted Personal Use License: use it for yourself, never sell or redistribute it. Every LICENSE file, package.json and README now says so.

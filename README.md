@@ -42,6 +42,16 @@ Your answers are saved in `brand/BRAND-BRAIN.md`.
 
 Follow [INSTALL-PROMPT.md](INSTALL-PROMPT.md). It gives you a prompt to install or update the studio from the repository root.
 
+## Updates
+
+Updates arrive every week on their own. The installer schedules a small job that brings your copy up to the latest version, backs up your brand, learnings and runs first, and puts everything back if the new version fails its self-test. Your files are never touched.
+
+- `node scripts/self-update.js --status` shows the setting and the last result.
+- `node scripts/self-update.js --now` updates right away.
+- `node scripts/self-update.js --off` turns weekly updates off, `--on` turns them back on.
+
+To install without scheduling the job, set `CONTENT_STUDIO_SKIP_UPDATES=1` before running the installer.
+
 ## What it will never do
 
 The studio will never upload an ad, spend money, or touch an ad account. A person and the Meta Ads agent handle any later advertising work.

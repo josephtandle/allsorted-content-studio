@@ -60,3 +60,16 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 $env:CONTENT_STUDIO_DIR=$dir
 & $node.Source (Join-Path $dir 'scripts/studio.mjs') self-test --no-render
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+# Weekly self-update: on by default. Set CONTENT_STUDIO_SKIP_UPDATES=1 to skip.
+$updateRoot = $null
+if (Test-Path (Join-Path $src '.git')) { $updateRoot = $src } elseif (Test-Path (Join-Path $dir '.git')) { $updateRoot = $dir }
+Write-Output ''
+if ($env:CONTENT_STUDIO_SKIP_UPDATES -eq '1' -or $env:ALLSORTED_AUTO_UPDATE -eq '0') {
+  Write-Output "Weekly updates not scheduled (CONTENT_STUDIO_SKIP_UPDATES=1). Later: node `"$(Join-Path $src 'scripts/self-update.js')`" --register"
+} elseif (-not $updateRoot) {
+  Write-Output 'Weekly updates need a git clone. Install with git clone to get them automatically.'
+} else {
+  & $node.Source (Join-Path $updateRoot 'scripts/self-update.js') --register
+  if ($LASTEXITCODE -ne 0) { Write-Output "Weekly updates could not be scheduled. Try later: node `"$(Join-Path $updateRoot 'scripts/self-update.js')`" --register" }
+}

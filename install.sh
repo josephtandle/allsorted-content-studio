@@ -41,3 +41,18 @@ mkdir -p "$DEST" "$HOME_DIR"
 "$NODE" "$SRC/scripts/install-files.mjs" "$SRC" "$DEST" "$HOME_DIR"
 # Kept for compatibility: the pinned carousel engine has zero npm dependencies.
 CONTENT_STUDIO_DIR="$DEST" "$NODE" "$DEST/scripts/studio.mjs" self-test --no-render
+
+# Weekly self-update: on by default, one line turns it off. It fast-forwards the
+# git clone this installer came from, never touches brand/, learnings/, runs/ or
+# any file you made, backs up first and rolls back if the self-test fails.
+# The nested tools/carousel-builder copy does not register a job of its own.
+UPDATE_ROOT=""
+if [ -d "$SRC/.git" ]; then UPDATE_ROOT=$SRC; elif [ -d "$DEST/.git" ]; then UPDATE_ROOT=$DEST; fi
+echo ""
+if [ "${CONTENT_STUDIO_SKIP_UPDATES:-0}" = "1" ] || [ "${ALLSORTED_AUTO_UPDATE:-1}" = "0" ]; then
+  echo "Weekly updates not scheduled (CONTENT_STUDIO_SKIP_UPDATES=1). Later: node \"$SRC/scripts/self-update.js\" --register"
+elif [ -z "$UPDATE_ROOT" ]; then
+  echo "Weekly updates need a git clone. Install with git clone to get them automatically."
+else
+  "$NODE" "$UPDATE_ROOT/scripts/self-update.js" --register || echo "Weekly updates could not be scheduled. Try later: node \"$UPDATE_ROOT/scripts/self-update.js\" --register"
+fi

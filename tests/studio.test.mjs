@@ -6,6 +6,8 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
+// The installers schedule a weekly self-update job; tests must never register one on this machine.
+process.env.CONTENT_STUDIO_SKIP_UPDATES='1'
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const node='/opt/homebrew/bin/node';
 const require=createRequire(import.meta.url);

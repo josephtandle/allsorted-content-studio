@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.5 (2026-10-04)
+
+- Tests: the suite seeds the example brand when brand/brand.json is missing, so a fresh clone passes all 20 tests, and removes what it seeded afterwards.
+
 ## 1.1.4 (2026-10-04)
 
 - Fix: `scripts/self-update.js` now runs in a fresh clone. The studio's package.json makes .js files ES modules, so the updater (CommonJS) died at its first `require`. `scripts/package.json` marks that folder as CommonJS; every command, path and document stays the same.

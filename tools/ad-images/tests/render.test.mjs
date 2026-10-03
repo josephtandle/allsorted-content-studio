@@ -106,9 +106,15 @@ test('shrinks a moderately long headline and fails a headline that still overflo
   const rescued=await render({templatePath,outPath:path.join(temp,'rescued.png'),width:1080,height:1080,browser,data:{hook:'A thoughtful morning practice can fit into a busy week',body:'Join a welcoming class.',cta:'Learn more'}});
   assert.ok(rescued.headlineFontSize<110,'moderately long headline should shrink from its initial size');
   assert.ok(rescued.measurements.every(element=>!element.overflow));
-  await assert.rejects(render({templatePath,outPath:path.join(temp,'too-long.png'),width:1080,height:1080,browser,data:{hook:Array(80).fill('morning').join(' '),body:'Body',cta:'Learn more'}}),/hook\/headline to 12 words maximum/);
+  const failedPath=path.join(temp,'too-long.png');
+  await assert.rejects(render({templatePath,outPath:failedPath,width:1080,height:1080,browser,data:{hook:Array(80).fill('morning').join(' '),body:'Body',cta:'Learn more'}}),/hook\/headline to 12 words maximum/);
+  assert.equal(fs.existsSync(failedPath),false,'failed renders leave no PNG at the requested output path');
   await assert.rejects(render({templatePath,outPath:path.join(temp,'body-too-long.png'),width:1080,height:1080,browser,data:{hook:'A short hook',body:Array(160).fill('supporting').join(' '),cta:'Learn more'}}),/Shorten body to 24 words maximum/);
   await assert.rejects(render({templatePath,outPath:path.join(temp,'cta-too-long.png'),width:1080,height:1080,browser,data:{hook:'A short hook',body:'A short body',cta:Array(100).fill('action').join('')}}),/Shorten CTA to 36 characters maximum/);
+  const storyHook='Gentle beginner yoga classes can make starting something new feel calm welcoming and practical for adults with busy schedules';
+  const storyBody='Explore a calm small-group introduction and learn a few gentle movements at your own pace with an experienced instructor this week in a welcoming local studio designed especially for curious first timers who want practical guidance without pressure';
+  await assert.rejects(render({templatePath:path.join(root,'templates/offer-card.html'),outPath:path.join(temp,'story-pushed-cta.png'),width:1080,height:1920,browser,data:{hook:storyHook,body:storyBody,cta:'View beginner class times today'} }),error=>{assert.match(error.message,/pushed below the story safe zone by content above it/);assert.match(error.message,/hook\/headline is \d+ words over its 12 words limit/);assert.match(error.message,/body is \d+ words over its 24 words limit/);assert.doesNotMatch(error.message,/Shorten CTA/);return true;});
+  assert.equal(fs.existsSync(path.join(temp,'story-pushed-cta.png')),false);
   fs.rmSync(temp,{recursive:true,force:true});
 });
 

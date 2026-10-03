@@ -118,21 +118,28 @@ export function escapeHtml(value) {
   return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
 }
 
-function overflowAdvice(element) {
+function textLimit(element) {
   const selector = element.selector || '';
-  const value = element.text || '';
-  let name, limit, unit;
-  if (/(^|\.)cta($|\.)/i.test(selector)) {
-    [name, limit, unit] = ['CTA', 36, 'characters'];
-  } else if (/(^|\.)label($|\.)|(^|\.)eyebrow($|\.)/i.test(selector)) {
-    [name, limit, unit] = ['eyebrow', 6, 'words'];
-  } else if (selector === 'h1' || selector.startsWith('h1.')) {
-    [name, limit, unit] = ['hook/headline', 12, 'words'];
-  } else {
-    [name, limit, unit] = ['body', 24, 'words'];
-  }
-  const count = unit === 'characters' ? String(value).length : String(value).trim().split(/\s+/).filter(Boolean).length;
-  return `Shorten ${name} to ${limit} ${unit} maximum (current: ${count} ${unit}).`;
+  if (/(^|\.)cta($|\.)/i.test(selector)) return { name: 'CTA', limit: 36, unit: 'characters' };
+  if (/(^|\.)label($|\.)|(^|\.)eyebrow($|\.)/i.test(selector)) return { name: 'eyebrow', limit: 6, unit: 'words' };
+  if (selector === 'h1' || selector.startsWith('h1.')) return { name: 'hook/headline', limit: 12, unit: 'words' };
+  return { name: 'body', limit: 24, unit: 'words' };
+}
+function overflowAdvice(element, elements) {
+  const countText = item => String(item.text || '').trim();
+  const countFor = (item, unit) => unit === 'characters' ? countText(item).length : countText(item).split(/\s+/).filter(Boolean).length;
+  const own = textLimit(element), current = countFor(element, own.unit);
+  if (current > own.limit) return `Shorten ${own.name} to ${own.limit} ${own.unit} maximum (current: ${current} ${own.unit}, ${current - own.limit} over).`;
+  const preceding = elements.slice(0, element.index).filter(item => {
+    const limit = textLimit(item);
+    return countFor(item, limit.unit) > limit.limit;
+  }).map(item => {
+    const limit = textLimit(item), count = countFor(item, limit.unit);
+    return `${limit.name} is ${count - limit.limit} ${limit.unit} over its ${limit.limit} ${limit.unit} limit`;
+  });
+  return preceding.length
+    ? `${element.selector} is pushed below the story safe zone by content above it: ${preceding.join(' and ')}.`
+    : `Adjust the content above ${element.selector} to keep it inside the safe zone.`;
 }
 
 export async function render({ templatePath, dataPath, data: suppliedData, outPath, width, height, browser = findBrowser(), overwrite = false }) {
@@ -158,26 +165,30 @@ export async function render({ templatePath, dataPath, data: suppliedData, outPa
   fs.writeFileSync(temp, html);
   fs.mkdirSync(path.dirname(path.resolve(outPath)), { recursive: true });
   const url=pathToFileURL(temp).href;
+  const finalPath=path.resolve(outPath);
+  const renderPath=path.join(tempRoot, `render-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.png`);
   try{
     let result;
     for(const executablePath of [...new Set([browser,...findBrowsers()])]){
-      result=spawnSync(executablePath,['--headless','--no-sandbox','--disable-gpu','--allow-file-access-from-files',`--window-size=${Number(width)},${Number(height)}`,`--screenshot=${path.resolve(outPath)}`,'--dump-dom',url],{encoding:'utf8',maxBuffer:8*1024*1024});
-      if(result.status===0&&fs.existsSync(path.resolve(outPath)))break;
+      result=spawnSync(executablePath,['--headless','--no-sandbox','--disable-gpu','--allow-file-access-from-files',`--window-size=${Number(width)},${Number(height)}`,`--screenshot=${renderPath}`,'--dump-dom',url],{encoding:'utf8',maxBuffer:8*1024*1024});
+      if(result.status===0&&fs.existsSync(renderPath))break;
     }
-    if(!result||result.status!==0||!fs.existsSync(path.resolve(outPath)))throw new Error('Install Google Chrome, Chromium or Microsoft Edge to run the browser renderer.');
+    if(!result||result.status!==0||!fs.existsSync(renderPath))throw new Error('Install Google Chrome, Chromium or Microsoft Edge to run the browser renderer.');
     const encoded=[...result.stdout.matchAll(/<pre id="render-measurements"[^>]*>([^<]+)<\/pre>/g)].at(-1)?.[1];
     if(!encoded)throw new Error('Browser did not return the renderer measurements.');
     const diagnostics=JSON.parse(Buffer.from(encoded,'base64').toString('utf8'));
     const overflows=diagnostics.elements.filter(item=>item.overflow);
     if(overflows.length){
       const details=overflows.map(item=>`${item.selector} (${item.fontSize}px at ${item.rect.x},${item.rect.y} ${item.rect.width}x${item.rect.height}, scroll ${item.scrollWidth}x${item.scrollHeight} client ${item.clientWidth}x${item.clientHeight}${item.overlaps.length?`, overlaps ${item.overlaps.join(',')}`:''})`).join(', ');
-      const advice=[...new Set(overflows.map(overflowAdvice))].join(' ');
+      const advice=[...new Set(overflows.map(item=>overflowAdvice(item,diagnostics.elements)))].join(' ');
       throw new Error(`Image text still overflows. ${advice} Elements: ${details}`);
     }
-    const dimensions=pngDimensions(outPath);
+    const dimensions=pngDimensions(renderPath);
     if(dimensions.width!==Number(width)||dimensions.height!==Number(height)) throw new Error(`Expected ${width}x${height}; got ${dimensions.width}x${dimensions.height}`);
+    fs.renameSync(renderPath, finalPath);
     return {...dimensions,measurements:diagnostics.elements,headlineFontSize:diagnostics.headlineFontSize};
   }finally{
+    try{fs.unlinkSync(renderPath)}catch{}
     try{fs.unlinkSync(temp)}catch{}
   }
 }

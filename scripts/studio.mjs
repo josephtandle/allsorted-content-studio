@@ -55,6 +55,13 @@ function check(runDir) {
     records.push({tool,manifest:path.relative(runDir,manifestPath),status:local.length?'broken':'working',errors:local}); errors.push(...local);
   }
   if(!manifests.length){errors.push('No tool manifest.json found.');say(`FAIL ${path.relative(STUDIO,runDir)}: manifest discovery - No tool manifest.json found.`);}
+  const briefText=fs.existsSync(path.join(runDir,'brief.md'))?fs.readFileSync(path.join(runDir,'brief.md'),'utf8'):'';
+  const requested=mergeFormatCounts(parseFormatCounts(briefText.match(/^## Format and count\s*\n([\s\S]*?)(?=^## |\s*$)/m)?.[1]||''),documentedInputCounts(runDir));
+  if(requested.length){
+    const actual=new Map();
+    for(const manifestPath of manifests){try{const data=JSON.parse(fs.readFileSync(manifestPath,'utf8'));const carousel=manifestPath.includes(`${path.sep}carousel${path.sep}`);for(const item of data.files||[]){if(carousel){const key='carousel';actual.set(key,(actual.get(key)||0)+1);}else{const ratio=item.ratio||String(item.file||'').match(/_(square|feed|story)\.png$/i)?.[1]?.toLowerCase();const key=ratio?`image:${ratio}`:'image';actual.set(key,(actual.get(key)||0)+1);actual.set('image',(actual.get('image')||0)+1);}}}catch{}}
+    for(const item of requested){const key=item.format==='image'&&item.ratio?`image:${item.ratio}`:item.format;const found=actual.get(key)||0;for(let n=found;n<item.count;n++){const label=item.format==='image'?`image (${item.ratio||'unspecified ratio'})`:'carousel slide';const message=`Requested ${label} ${n+1} of ${item.count} is missing from the run.`;say(`FAIL brief.md: requested creative - ${message}`);errors.push(message);}}
+  }
   const summary={time:new Date().toISOString(),checked:manifests.length,errors:errors.length,records};
   fs.appendFileSync(path.join(runDir,'run-log.jsonl'),`${JSON.stringify(summary)}\n`);
   if(errors.length) throw new Error(`QA failed: ${errors.join(' | ')}`);
@@ -83,6 +90,23 @@ function handoff(runDir) {
 function syncBrand(){const source=path.join(STUDIO,'brand/BRAND-BRAIN.md');if(!fs.existsSync(source))throw new Error('Create brand/BRAND-BRAIN.md from brand/BRAND-BRAIN.template.md first.');const text=fs.readFileSync(source,'utf8');const values={};for(const match of text.matchAll(/^- ([^:\n]+):\s*(.*)$/gm))values[match[1].trim().toLowerCase()]=match[2].trim();const get=(key,fallback='')=>{const value=values[key];return value&&!/^\[.*\]$/.test(value)?value:fallback;};const list=(value)=>value.split(/[,;]/).map(v=>v.trim()).filter(Boolean);const canvas=get('background color','#F7F2E8'),ink=get('ink color','#173B35'),accent=get('accent color','#E47C52');const colors={canvas,ink,accent,darkVariant:{canvas:get('dark canvas color',ink),ink:get('dark ink color',canvas),accent:get('dark accent color',accent)}};const fonts={display:get('display font','Georgia'),body:get('body font','Arial')};const requestedTheme=get('default theme','dark').toLowerCase();const brand={brandName:get('brand name','Your business'),offer:get('offer'),priceOrTerms:get('price or terms, if approved'),destination:get('destination'),audience:get('specific audience'),currentSituation:get('current situation'),problem:get('problem in their words'),supportedOutcome:get('desired supported outcome'),approvedProof:list(get('approved facts and proof')),testimonials:list(get('testimonials with permission','none')).filter(v=>v.toLowerCase()!=='none'),claimsToAvoid:list(get('claims to avoid')),voice:get('voice'),theme:['light','dark'].includes(requestedTheme)?requestedTheme:'dark',colors,fonts,imageDirection:get('image direction'),primaryAction:get('primary action'),cta:get('cta wording')};const dest=path.join(STUDIO,'brand/brand.json');fs.writeFileSync(dest,`${JSON.stringify(brand,null,2)}\n`);say(`Generated ${dest} from brand/BRAND-BRAIN.md`);}
 function useExampleBrand(){const md=path.join(STUDIO,'brand/BRAND-BRAIN.md'),json=path.join(STUDIO,'brand/brand.json');if(fs.existsSync(md)||fs.existsSync(json))throw new Error('Refusing to overwrite an existing brand/BRAND-BRAIN.md or brand/brand.json.');fs.copyFileSync(path.join(STUDIO,'brand/BRAND-BRAIN.example.md'),md);syncBrand();}
 function renderTest(){const runDir=path.join(STUDIO,'.test-data','_selftest'),imageDir=path.join(runDir,'images');fs.mkdirSync(imageDir,{recursive:true});const data=path.join(runDir,'selftest-image.json'),out=path.join(imageDir,`studio-selftest-${process.pid}_01_offer-card_square.png`),manifest=path.join(imageDir,'manifest.json');fs.writeFileSync(data,JSON.stringify({brandName:'Sunrise Yoga Studio',hook:'A calmer start begins here',body:'Try one gentle beginner class this week.',cta:'See the class schedule',brand:JSON.parse(fs.readFileSync(path.join(STUDIO,'brand/brand.example.json'),'utf8'))}));const r=run(process.execPath,[path.join(STUDIO,'tools/ad-images/scripts/render.mjs'),'--template',path.join(STUDIO,'tools/ad-images/templates/offer-card.html'),'--data',data,'--out',out,'--width','1080','--height','1080','--manifest',manifest]);if(r.status!==0)throw new Error((r.stderr||r.stdout).trim());say(`Test image: ${out}`);return out;}
+function parseFormatCounts(text){
+  const numbers={one:1,a:1,an:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10};
+  const result=[];const source=String(text||'');
+  const pattern=/\b(one|a|an|two|three|four|five|six|seven|eight|nine|ten|\d+)\s*(?:[- ]\s*(square|story|feed|slide))?\s*[- ]\s*(image|carousel|video)s?\b/gi;
+  for(const match of source.matchAll(pattern)){const count=numbers[match[1].toLowerCase()]||Number(match[1]);const kind=match[3].toLowerCase();if(!count)continue;if(kind==='image')result.push({format:'image',ratio:match[2]?.toLowerCase()||null,count});else if(kind==='carousel')result.push({format:'carousel',count:match[2]?.toLowerCase()==='slide'?count:1});else result.push({format:'video',count});}
+  return result;
+}
+function mergeFormatCounts(...groups){
+  const counts=new Map();for(const item of groups.flat()){const key=`${item.format}:${item.ratio||''}`;const current=counts.get(key);if(!current||item.count>current.count)counts.set(key,item);}return [...counts.values()];
+}
+function documentedInputCounts(runDir){
+  const found=[];const batchPath=path.join(runDir,'images/batch.json');
+  if(fs.existsSync(batchPath)){try{const batch=JSON.parse(fs.readFileSync(batchPath,'utf8'));const variations=Array.isArray(batch.variations)?batch.variations:[];const grouped=new Map();for(const variation of variations){if((batch.format||'single')!=='single')continue;const ratio=variation.ratio||batch.ratio||'square';grouped.set(ratio,(grouped.get(ratio)||0)+1);}for(const [ratio,count] of grouped)found.push({format:'image',ratio,count});}catch{}}
+  const carouselPath=path.join(runDir,'carousel-data.json');
+  if(fs.existsSync(carouselPath)){try{const carousel=JSON.parse(fs.readFileSync(carouselPath,'utf8'));if(Array.isArray(carousel.slides)&&carousel.slides.length)found.push({format:'carousel',count:carousel.slides.length});}catch{}}
+  return found;
+}
 function brief(runDir){
   const requestPath=path.join(runDir,'request.md');
   if(!fs.existsSync(requestPath))throw new Error(`Missing ${requestPath}; add the run request before generating the brief.`);
@@ -91,8 +115,8 @@ function brief(runDir){
   const brain=path.join(STUDIO,'brand/BRAND-BRAIN.md'); const brainText=fs.existsSync(brain)?fs.readFileSync(brain,'utf8'):'';
   const pick=(key, brainKey=key)=>{const value=brand[key];if(typeof value==='string'&&value.trim())return value.trim();const m=brainText.match(new RegExp(`^- ${brainKey}:\\s*(.+)$`,'im'));return m&&!/^\[.*\]$/.test(m[1].trim())?m[1].trim():'';};
   const evidence=Array.isArray(brand.approvedProof)?brand.approvedProof.join('; '):pick('approvedProof','approved facts and proof');
-  const requestedFormats=[...request.matchAll(/\b(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)(?:[- ](?:square|story|feed|slide))?[- ](?:image|carousel|video)s?\b/gi)].map(match=>match[0]);
-  const fields={Goal:request.trim(),Offer:pick('offer'),Audience:pick('audience','specific audience'),Problem:pick('problem','problem in their words'), 'Supported outcome':pick('supportedOutcome','desired supported outcome'), 'Approved evidence':evidence, 'Format and count':requestedFormats.join(', '),CTA:pick('cta','cta wording')||pick('primaryAction','primary action'),Destination:pick('destination')};
+  const requestedFormats=mergeFormatCounts(parseFormatCounts(request),documentedInputCounts(runDir)).map(item=>item.format==='image'?`${item.count} ${item.ratio||''} image${item.count===1?'':'s'}`.replace(/\s+/g,' ').trim():item.format==='carousel'?`${item.count===1?'1':item.count}-slide carousel`:`${item.count} video${item.count===1?'':'s'}`).join(', ');
+  const fields={Goal:request.trim(),Offer:pick('offer'),Audience:pick('audience','specific audience'),Problem:pick('problem','problem in their words'), 'Supported outcome':pick('supportedOutcome','desired supported outcome'), 'Approved evidence':evidence, 'Format and count':requestedFormats,CTA:pick('cta','cta wording')||pick('primaryAction','primary action'),Destination:pick('destination')};
   const unresolved=Object.entries(fields).filter(([,value])=>!value).map(([key])=>key);
   const body=Object.entries(fields).map(([key,value])=>`## ${key}\n${value||'[Unresolved]'}\n`).join('\n');
   const output=`# Creative brief\n\nGenerated: ${date}\n\n${body}\n## Constraints\n${pick('claimsToAvoid','claims to avoid')||'[Unresolved]'}\n\n## Unresolved items\n${unresolved.length?unresolved.map(key=>`- ${key}`).join('\n'):'- None'}\n`;

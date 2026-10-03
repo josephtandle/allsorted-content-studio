@@ -5,7 +5,7 @@ description: Create short HeyGen talking-head or avatar video ads for Meta. Use 
 
 # HeyGen Ad Videos
 
-Turn a clear offer into three reviewable short video ads, then render only after the student chooses the version, presenter, voice, and format. The default route is the official HeyGen MCP with OAuth, no API key.
+Turn a clear offer into three reviewable short video ads, then render only after the student chooses the version, presenter, voice, and format. The default route is the official HeyGen MCP.
 
 ## Consent and ad rules
 
@@ -19,7 +19,7 @@ In a normal terminal, install for the user's your agent workspace account:
 claude mcp add --transport http -s user heygen https://mcp.heygen.com/mcp/v1/
 ```
 
-Mac and Windows use the same command. If `claude` is not recognized, install/update your agent workspace using its official installer, reopen a terminal, and retry. Then open your agent workspace, enter `/mcp`, choose `heygen`, and complete the browser sign-in to HeyGen. No API key is needed. Confirm with `/mcp` that `heygen` is connected, then ask HeyGen to list avatars. Pick a stock avatar or the student's own consented avatar, then list voices and choose one.
+Mac and Windows use the same command. If `claude` is not recognized, install/update your agent workspace using its official installer, reopen a terminal, and retry. Then open your agent workspace, enter `/mcp`, choose `heygen`, and complete the browser sign-in to HeyGen. Confirm with `/mcp` that `heygen` is connected, then ask HeyGen to list avatars. Pick a stock avatar or the student's own consented avatar, then list voices and choose one.
 
 MCP generation uses the student's HeyGen web-plan credits and is intended for trial-scale use, not unattended batches. As researched 2026-10-02, Free is $0 with 3 videos/month, up to 1 minute each, limited trial features, watermark, and 1 custom avatar. Limits and commercial-use rights can change. Before a real ad, check the current HeyGen plan and terms; the free plan is a smoke-test route, not assumed to include commercial rights. Ask HeyGen for current credits and show any available estimate before generation. Get an explicit yes for each paid render.
 
@@ -31,7 +31,7 @@ Use filenames like `<offer-slug>_<script-01>_<ratio>_v1.mp4`. If `creatives/mani
 
 ## B. Optional API route for volume
 
-Use `scripts/heygen.mjs` only when the student explicitly chooses the API route. It needs Node 18+ and no npm dependencies. Set `HEYGEN_API_KEY` in the operating system environment, never paste it into chat or store it in the project. This route bills a separate API wallet from the web plan. Check current billing and `HEYGEN_SPEND_CAP_USD` before rendering. Estimates are planning estimates, not quotes.
+Use `scripts/heygen.mjs` only when the student explicitly chooses the API route. It needs Node 18+ and no npm dependencies. Setup and environment-variable instructions are in the tool README. This route bills a separate API wallet from the web plan. Check current billing and `HEYGEN_SPEND_CAP_USD` before rendering. Estimates are planning estimates, not quotes.
 
 ```sh
 node "{{SKILL_DIR}}/scripts/heygen.mjs" avatars

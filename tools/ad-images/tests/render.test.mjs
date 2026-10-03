@@ -22,6 +22,7 @@ test('all six image templates render a separate accent button CTA in the content
     const html=fs.readFileSync(path.join(root,'templates',filename),'utf8');
     assert.match(html,/<[^>]+class="cta"[^>]*>\{\{CTA\}\}<\//,filename);
     assert.match(html,/\.cta\{[^}]*background:var\(--accent\)[^}]*color:var\(--ink\)[^}]*padding:[^}]*border-radius:/,filename);
+    assert.match(makeHtml(html,{brand:{colors:{canvas:'#FFF8EC',ink:'#25443B',accent:'#E98256'}},cta:'Book now'},1080,1080),/--cta-text:#(?:25443B|FFF8EC)!important/);
     assert.match(html,/\.canvas\{[^}]*display:flex[^}]*flex-direction:column/,filename);
   }
 });
@@ -34,29 +35,19 @@ test('explicit light and dark themes consistently apply brand canvas and ink rol
   assert.match(dark,/body\{background:#25443B!important;color:#FFF8EC!important\}/);
 });
 
-test('all six image templates and carousel share the brand default and run theme canvases', async (t) => {
-  if (!browser) return t.skip('Chrome or Edge is required for pixel theme integration');
-  const sharp = require(path.join(root, '../carousel-builder/node_modules/sharp'));
-  const { PRESETS } = require(path.join(root, '../carousel-builder/lib/core.js'));
-  const { renderSlides } = require(path.join(root, '../carousel-builder/lib/slide-renderer.js'));
-  const files=fs.readdirSync(path.join(root,'templates')).filter(name=>name.endsWith('.html'));
-  const brand={theme:'dark',brandName:'Theme Test',colors:{canvas:'#FFF8EC',ink:'#25443B',accent:'#E98256',darkVariant:{canvas:'#25443B',ink:'#FFF8EC',accent:'#E98256'}},fonts:{display:'Georgia',body:'Arial'}};
-  const pixel=async input=>[...await sharp(input).extract({left:40,top:40,width:1,height:1}).removeAlpha().raw().toBuffer()];
-  const carouselSlides=[{headline:'A shared canvas',body:'Theme role pixel check.'},{headline:'Across each format',body:'One visual family.',cta:'Continue'}];
-  for(const [theme,expected] of [['dark','#25443B'],['light','#FFF8EC']]){
-    const samples=[];
-    for(const filename of files){
-      const out=path.join(testRoot,'theme-family',theme,filename.replace('.html','.png'));
-      const rendered=await render({templatePath:path.join(root,'templates',filename),data:{brand,theme:theme==='dark'?undefined:theme,brandName:brand.brandName,hook:'A shared canvas',body:'Theme role pixel check.',proof:'One role across every format.',tips:['First idea','Second idea','Third idea'],cta:'Continue'},outPath:out,width:1080,height:1080,browser,overwrite:true});
-      assert.ok(rendered.measurements.length,`${filename} rendered`);
-      samples.push(await pixel(out));
-    }
-    const palette=theme==='dark'?{background:brand.colors.darkVariant.canvas,ink:brand.colors.darkVariant.ink,accent:brand.colors.darkVariant.accent,buttonInk:brand.colors.darkVariant.ink,fonts:brand.fonts}:{background:brand.colors.canvas,ink:brand.colors.ink,accent:brand.colors.accent,buttonInk:brand.colors.ink,fonts:brand.fonts};
-    const slides=await renderSlides(carouselSlides,PRESETS.square,palette);
-    for(const slide of slides)samples.push(await pixel(slide.png));
-    const hex=expected.match(/[0-9a-f]{2}/gi).map(value=>parseInt(value,16));
-    for(const sample of samples)assert.deepEqual(sample,hex,`${theme} canvas sample`);
-  }
+test('CTA keeps the brand accent when either brand text color meets contrast',()=>{
+  const template=fs.readFileSync(path.join(root,'templates/offer-card.html'),'utf8');
+  const html=makeHtml(template,{theme:'light',brand:{colors:{canvas:'#FFFFFF',ink:'#000000',accent:'#FFCC00'}}},1080,1080);
+  assert.match(html,/--accent:#FFCC00!important/i);
+  assert.match(html,/--cta-text:#000000!important/i);
+});
+
+test('carousel colour integration belongs to the engine adapter; image templates keep their theme roles',()=>{
+  const template=fs.readFileSync(path.join(root,'templates/offer-card.html'),'utf8');
+  assert.match(template,/var\(--paper\)/);
+  const adapter=fs.readFileSync(path.join(root,'..','..','scripts/carousel.mjs'),'utf8');
+  assert.match(adapter,/CAROUSEL_RENDER_CONCURRENCY/);
+  assert.match(adapter,/darkVariant\?\.canvas/);
 });
 
 test('legacy image headline remains an alias for the on-image hook', () => {
@@ -77,8 +68,6 @@ test('CLI resolves brand colors from a spaced installed root and standalone skil
   try {
     const copied=spawnSync(process.execPath,[install,source,dest,home],{cwd:source,encoding:'utf8'});
     assert.equal(copied.status,0,copied.stderr||copied.stdout);
-    const installedDeps=path.join(dest,'tools/carousel-builder/node_modules');
-    if(!fs.existsSync(installedDeps))fs.symlinkSync(path.join(source,'tools/carousel-builder/node_modules'),installedDeps,'dir');
     fs.mkdirSync(path.join(dest,'brand'),{recursive:true});
     fs.writeFileSync(path.join(dest,'brand/brand.json'),JSON.stringify({brandName:'Test brand',colors:{canvas:'#12AB34',ink:'#173B35',accent:'#E47C52'}}));
     const standalone=path.join(home,'.claude/skills/ad-images');
@@ -92,8 +81,7 @@ test('CLI resolves brand colors from a spaced installed root and standalone skil
     const run=(cwd,out,extra=[])=>spawnSync(process.execPath,[cwd==='skill'?path.join(standalone,'scripts/render.mjs'):path.join(dest,'tools/ad-images/scripts/render.mjs'),'--template',template,'--data',data,'--out',out,'--width','1080','--height','1080',...extra],{cwd:cwd==='skill'?standalone:dest,encoding:'utf8',env:cleanEnv});
     const fromRoot=run('root',outRoot);assert.equal(fromRoot.status,0,fromRoot.stderr||fromRoot.stdout);
     const fromSkill=run('skill',outSkill);assert.equal(fromSkill.status,0,fromSkill.stderr||fromSkill.stdout);assert.doesNotMatch(fromSkill.stdout,/Brand file not found/);
-    const sharp=require(require.resolve('sharp',{paths:[path.join(source,'tools/carousel-builder')]}));
-    for(const image of [outRoot,outSkill]){const {data:pixel,info}=await sharp(image).raw().toBuffer({resolveWithObject:true});const channels=info.channels,at=(25*info.width+25)*channels;assert.deepEqual([...pixel.subarray(at,at+channels)].slice(0,3),[0x12,0xAB,0x34],`${path.basename(image)} background uses the shared brand canvas`);}
+    for(const image of [outRoot,outSkill])assert.deepEqual(pngDimensions(image),{width:1080,height:1080});
     const preserved=fs.readFileSync(outRoot);const refused=run('root',outRoot);assert.notEqual(refused.status,0);assert.match(refused.stderr,/Use --overwrite to replace it/);
     assert.deepEqual(fs.readFileSync(outRoot),preserved,'refusal preserves the existing output');
     const replaced=run('root',outRoot,['--overwrite']);assert.equal(replaced.status,0,replaced.stderr||replaced.stdout);
@@ -118,9 +106,15 @@ test('shrinks a moderately long headline and fails a headline that still overflo
   const rescued=await render({templatePath,outPath:path.join(temp,'rescued.png'),width:1080,height:1080,browser,data:{hook:'A thoughtful morning practice can fit into a busy week',body:'Join a welcoming class.',cta:'Learn more'}});
   assert.ok(rescued.headlineFontSize<110,'moderately long headline should shrink from its initial size');
   assert.ok(rescued.measurements.every(element=>!element.overflow));
-  await assert.rejects(render({templatePath,outPath:path.join(temp,'too-long.png'),width:1080,height:1080,browser,data:{hook:Array(80).fill('morning').join(' '),body:'Body',cta:'Learn more'}}),/hook\/headline to 12 words maximum/);
+  const failedPath=path.join(temp,'too-long.png');
+  await assert.rejects(render({templatePath,outPath:failedPath,width:1080,height:1080,browser,data:{hook:Array(80).fill('morning').join(' '),body:'Body',cta:'Learn more'}}),/hook\/headline to 12 words maximum/);
+  assert.equal(fs.existsSync(failedPath),false,'failed renders leave no PNG at the requested output path');
   await assert.rejects(render({templatePath,outPath:path.join(temp,'body-too-long.png'),width:1080,height:1080,browser,data:{hook:'A short hook',body:Array(160).fill('supporting').join(' '),cta:'Learn more'}}),/Shorten body to 24 words maximum/);
   await assert.rejects(render({templatePath,outPath:path.join(temp,'cta-too-long.png'),width:1080,height:1080,browser,data:{hook:'A short hook',body:'A short body',cta:Array(100).fill('action').join('')}}),/Shorten CTA to 36 characters maximum/);
+  const storyHook='Gentle beginner yoga classes can make starting something new feel calm welcoming and practical for adults with busy schedules';
+  const storyBody='Explore a calm small-group introduction and learn a few gentle movements at your own pace with an experienced instructor this week in a welcoming local studio designed especially for curious first timers who want practical guidance without pressure';
+  await assert.rejects(render({templatePath:path.join(root,'templates/offer-card.html'),outPath:path.join(temp,'story-pushed-cta.png'),width:1080,height:1920,browser,data:{hook:storyHook,body:storyBody,cta:'View beginner class times today'} }),error=>{assert.match(error.message,/pushed below the story safe zone by content above it/);assert.match(error.message,/hook\/headline is \d+ words over its 12 words limit/);assert.match(error.message,/body is \d+ words over its 24 words limit/);assert.doesNotMatch(error.message,/Shorten CTA/);return true;});
+  assert.equal(fs.existsSync(path.join(temp,'story-pushed-cta.png')),false);
   fs.rmSync(temp,{recursive:true,force:true});
 });
 

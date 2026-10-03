@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.1.0
+
+- Enforced 4.5:1 canvas and CTA contrast with automatic CTA text selection and accent darkening.
+- Rendered closing carousel headlines and limited Meta card headlines to slide headline/eyebrow copy.
+- Aligned batch outputs, manifests, and per-image data with run folders; added batch overwrite support.
+- Added generated run briefs, complete CLI usage, and exact overwrite command examples.
+- Regenerated the proof run and its contact sheet.
+- Replaced the old Carousel Builder app with the pinned All Sorted carousel engine v1.2.0. Carousel renders now use the shared brand palette, engine layout checks, and engine-generated Meta handoff with the requested CTA.
+- Re-pinned HookLab from the shipped skills 1.3.2 distribution and kept the studio-specific mode file.
+- Removed carousel npm dependencies and made installer npm flags compatibility no-ops.
+- Made in-place installs leave shipped source files byte-identical; Claude skill and agent copies still resolve the studio-root placeholder.
+- Added skill-pack frontmatter and sensitive setup wording checks.
+
 ## 1.0.4
 
 - Windows installer: safe browser detection and parity with the Mac installer, tested under PowerShell 7.

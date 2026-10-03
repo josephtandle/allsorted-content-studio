@@ -1,6 +1,6 @@
 # Studio data formats
 
-Use UTF-8 JSON. Paths in commands are relative to the run folder unless absolute. Replace `CONTENT_STUDIO_DIR` and `RUN_DIR` with the studio and current run folders.
+Use UTF-8 JSON. Paths in commands are relative to the run folder unless absolute. Studio-root rule: when reading from the source/install root, resolve `CONTENT_STUDIO_DIR` to the directory containing this file; the installer resolves it in Claude-installed skill and agent copies. Replace `RUN_DIR` with the current run folder.
 
 ## Shared brand and image inputs
 
@@ -20,11 +20,13 @@ Theme role table (the selected theme supplies the shared canvas, ink, and accent
 | `three-tips` | Theme canvas | Theme ink | Brand label, numbered tips, CTA fill |
 | Carousel | Theme canvas | Theme ink | Eyebrow and CTA fill |
 
-All image buttons use theme ink text on theme accent. The carousel uses theme ink for button text. `darkVariant.canvas`, `darkVariant.ink`, and `darkVariant.accent` override the corresponding dark roles; absent dark values fall back to base ink, canvas, and accent respectively.
+All image buttons and the carousel closing button choose the higher-contrast color from theme ink and theme canvas. The button accent is darkened when necessary to reach 4.5:1. QA checks both text against the canvas and CTA text against its button at 4.5:1. `darkVariant.canvas`, `darkVariant.ink`, and `darkVariant.accent` override the corresponding dark roles; absent dark values fall back to base ink, canvas, and accent respectively.
+
+Per-image JSON inputs live in `RUN_DIR/data/` and use `<slug>_<nn>_<template>_<ratio>.json`. Single-image renders read the path supplied by `--data`; batch creates these files from each variation before rendering. Batch input is `RUN_DIR/images/batch.json`; outputs and `manifest.json` are directly in `RUN_DIR/images/`.
 
 ## copy/ads.json
 
-Copy is per creative. `creative` is the run-relative path to the generated file. For a carousel, use `carousel/carousel-spec.json`. Each record supplies that creative's headline, primary text, link description, optional button wording, and explicit Meta `cta_type`.
+Copy is per creative. `creative` is the run-relative path to the generated file. For a carousel, use `carousel/carousel-spec.json`. Each record supplies that creative's headline, primary text, link description, optional button wording, and explicit Meta `cta_type`. The studio passes the carousel entry's `cta_type` to the pinned engine `export-meta <id> --cta <value>` command and uses its exported `callToAction` in the handoff.
 
 ```json
 {
@@ -65,7 +67,7 @@ For single images, all four copy fields belong to that image. For carousels, put
 
 ## carousel-data.json and filenames
 
-Provide a `title`, `preset` (`square`, `4x5`, or `9x16`), and two to ten `slides`. Each slide accepts `eyebrow` (or `stepLabel`), `headline` (or `heading`), `body`, `cta`, optional `showCta`, and optional `imageData`. Only the final slide shows a CTA by default; `showCta: true` enables one earlier and `false` suppresses one.
+Provide a `title`, `preset` (`square`, `feed`, or `story`), and two to ten `slides`. Each slide accepts an engine `layout` and its fields, or `headline` (or `heading`) and `body`; the adapter defaults to editorial statement slides and uses the engine's `10-cta-comment-keyword` closing layout on the final slide. The closing slide renders `eyebrow` above `headline`, then the CTA button, then `body` as supporting text. `headline` is also the Meta card headline; if missing, the eyebrow is used, clipped at a word boundary to 40 characters. If both are missing, the card headline stays blank and QA/handoff warns rather than borrowing body copy. Set an explicit `layout` on individual slides to use another engine template. Use `showCta: true` only to opt into the engine closing layout on an earlier slide. The final-slide CTA is part of the engine closing layout.
 
 Carousel filenames are derived from `title` in these exact steps: convert the title to a string (default `creative`); Unicode-normalize with NFKD; remove every character outside `[\w\s-]`; trim; lowercase; replace each run of spaces or hyphens with one hyphen; take the first 48 characters; and use `creative` if the result is empty. Each slide is named `<slug>_<nn>_carousel_<ratio>.png`, where `nn` starts at `01` and is zero-padded to two digits.
 
@@ -109,6 +111,26 @@ The root object has `status: "PAUSED"`, explicit `blanks`, and `ads`. Each ad re
   ]
 }
 ```
+# CLI commands
+
+`node scripts/studio.mjs` prints full usage. Subcommands: `self-test [--no-render]`, `render-test`, `brand-json`, `use-example-brand`, `new-run <slug>`, `brief <run-dir>`, `contact-sheet <run-dir>`, `check <run-dir>`, and `handoff <run-dir>`. `new-run` creates `request.md`; `brief` combines that request with available brand and offer fields into `brief.md` and lists unresolved items. `contact-sheet` creates a visual contact sheet, `check` runs mechanical QA and logs it, and `handoff` writes the reviewed PAUSED handoff.
+
 # Render overwrite behavior
 
-`tools/ad-images/scripts/render.mjs` refuses to replace an existing output by default. For an intentional fix-round re-render, add `--overwrite`; without it, the command prints a hint naming the flag and preserves the existing file.
+`tools/ad-images/scripts/render.mjs` refuses to replace an existing output by default. For an intentional fix-round re-render, use this exact flag syntax:
+
+```sh
+node tools/ad-images/scripts/render.mjs --template tools/ad-images/templates/offer-card.html --data RUN_DIR/data/sunrise-yoga_01_offer-card_square.json --out RUN_DIR/images/sunrise-yoga_01_offer-card_square.png --width 1080 --height 1080 --manifest RUN_DIR/images/manifest.json --overwrite
+```
+
+Batch overwrite syntax:
+
+```sh
+node tools/ad-images/scripts/batch.mjs RUN_DIR/images/batch.json --overwrite
+```
+
+Carousel overwrite syntax:
+
+```sh
+node scripts/carousel.mjs RUN_DIR --overwrite
+```

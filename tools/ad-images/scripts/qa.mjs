@@ -30,7 +30,12 @@ export function checkManifest(manifestPath) {
       const hasBorder = Number.parseFloat(cta.borderWidth || cta.border || 0) > 0;
       if (!hasBackground && !hasBorder) errors.push(`${item.file}: CTA has no distinct button background or border`);
       if (Array.isArray(cta.overlaps) && cta.overlaps.length) errors.push(`${item.file}: CTA overlaps another text block`);
+      const ratio = Number(cta.contrastRatio);
+      if (!Number.isFinite(ratio) || ratio < 4.5) errors.push(`${item.file}: CTA text contrast is below 4.5:1 (${Number.isFinite(ratio) ? ratio.toFixed(2) : 'unmeasured'}:1)`);
     }
+    const canvas = measuredCanvas(item);
+    const textContrast=Number(item.textContrastRatio);
+    if (!canvas || !Number.isFinite(textContrast) || textContrast < 4.5) errors.push(`${item.file}: text/background contrast is below 4.5:1 (${Number.isFinite(textContrast)?textContrast.toFixed(2):'unmeasured'}:1)`);
     const scale = dimensions.width / 1080;
     const ratio=item.ratio||manifest.ratio;
     const story = ratio === 'story';
@@ -57,6 +62,8 @@ export function checkManifest(manifestPath) {
   }
   return { errors, count: (manifest.files || []).length };
 }
+
+function measuredCanvas(item) { return item.canvasColor || item.measurements?.find(element => /canvas|body/i.test(element.selector || ''))?.background; }
 
 export function policyChecklist() {
   return [

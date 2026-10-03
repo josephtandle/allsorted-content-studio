@@ -1,20 +1,18 @@
 {
-  "name": "local-carousel-builder",
-  "version": "1.0.1",
-  "private": true,
-  "description": "A local five-step carousel builder for students",
-  "engines": {
-    "node": ">=20.9"
+  "name": "carousel-builder",
+  "version": "1.2.0",
+  "description": "Build, export and publish social carousels from a brief: brand kit, layout-checked rendering, background image chain and confirmation-gated publishing. Zero npm dependencies.",
+  "license": "MIT",
+  "bin": {
+    "carousel": "bin/carousel.js"
   },
   "scripts": {
-    "start": "node server.js",
-    "test": "node --test",
-    "proof": "node tests/browser-proof.js"
+    "test": "node --test test/index.js",
+    "doctor": "node bin/carousel.js doctor"
   },
-  "dependencies": {
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "sharp": "0.35.5",
-    "playwright-core": "^1.55.0"
-  }
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["carousel", "instagram", "linkedin", "facebook", "tiktok", "slides", "social"],
+  "dependencies": {}
 }

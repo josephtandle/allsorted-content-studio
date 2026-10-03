@@ -2,14 +2,14 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { resolveCtaColors } from './cta-colors.mjs';
 import { createRequire } from 'node:module';
+import { spawnSync } from 'node:child_process';
 
 const require=createRequire(import.meta.url);
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const { resolveStudioRoot } = require('./studio-root.cjs');
 const studioRoot = resolveStudioRoot(scriptDir, path.dirname(scriptDir));
-let chromium;
-try{chromium=require('playwright-core').chromium}catch{ try { chromium=require(path.join(studioRoot,'tools/carousel-builder/node_modules/playwright-core')).chromium; } catch {} }
 
 export function parseArgs(args) {
   const result = {};
@@ -36,6 +36,12 @@ export function pngDimensions(file) {
   return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
 }
 
+export function contrastRatio(foreground, background) {
+  const parse=value=>{const s=String(value||'').trim();const m=s.match(/^#([\da-f]{3}|[\da-f]{6})$/i);if(m){const h=m[1].length===3?[...m[1]].map(x=>x+x).join(''):m[1];return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16));}const rgb=s.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);return rgb?[+rgb[1],+rgb[2],+rgb[3]]:null;};
+  const luminance=value=>{const c=parse(value);if(!c)return null;const [r,g,b]=c.map(x=>x/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return .2126*r+.7152*g+.0722*b;};
+  const a=luminance(foreground),b=luminance(background);return a===null||b===null?null:(Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+}
+
 function safeCss(value, fallback) {
   const text = String(value || fallback);
   return /[;{}<>]/.test(text) ? fallback : text;
@@ -51,8 +57,11 @@ export function makeHtml(template, data, width, height) {
   const themedColors = theme === 'dark'
     ? { canvas: dark.canvas || colors.ink || '#173B35', ink: dark.ink || colors.canvas || colors.background || '#F7F2E8', accent: dark.accent || colors.accent || '#E47C52' }
     : { canvas: colors.canvas || colors.background || '#F7F2E8', ink: colors.ink || '#173B35', accent: colors.accent || '#E47C52' };
+  const ctaColors = resolveCtaColors({ accent: themedColors.accent, ink: colors.ink || '#173B35', canvas: colors.canvas || colors.background || '#F7F2E8', surface: themedColors.canvas });
+  const button = ctaColors.button;
+  const ctaText = ctaColors.text;
   const values = {
-    BACKGROUND: safeCss(themedColors.canvas, '#F7F2E8'), INK: safeCss(themedColors.ink, '#173B35'), ACCENT: safeCss(themedColors.accent, '#E47C52'),
+    BACKGROUND: safeCss(themedColors.canvas, '#F7F2E8'), INK: safeCss(themedColors.ink, '#173B35'), ACCENT: safeCss(button, '#E47C52'),
     DISPLAY_FONT: safeCss(fonts.display, 'Georgia'), BODY_FONT: safeCss(fonts.body, 'Arial'), BRAND: data.brandName || brand.brandName || 'Your business',
     HOOK: data.hook || data.headline || '', HEADLINE: data.headline || '', BODY: data.body || '', CTA: data.cta || '',
     TIP1: data.tips?.[0] || data.tip1 || '', TIP2: data.tips?.[1] || data.tip2 || '', TIP3: data.tips?.[2] || data.tip3 || '', PROOF: data.proof || '',
@@ -64,7 +73,7 @@ export function makeHtml(template, data, width, height) {
     html = html.replace(/data-layout-box="[^"]+"/g, 'data-layout-box="0.08,0.14,0.84,0.66"');
   }
   html=html.replace('</style>','.canvas h1{height:auto!important;max-height:none!important;overflow:visible!important;padding-bottom:8px!important}</style>');
-  html=html.replace('</style>',`:root{--paper:${safeCss(themedColors.canvas,'#F7F2E8')}!important;--ink:${safeCss(themedColors.ink,'#173B35')}!important;--accent:${safeCss(themedColors.accent,'#E47C52')}!important}body{background:${safeCss(themedColors.canvas,'#F7F2E8')}!important;color:${safeCss(themedColors.ink,'#173B35')}!important}.cta{background:var(--accent)!important;color:${safeCss(themedColors.ink,'#173B35')}!important}</style>`);
+  html=html.replace('</style>',`:root{--paper:${safeCss(themedColors.canvas,'#F7F2E8')}!important;--ink:${safeCss(themedColors.ink,'#173B35')}!important;--accent:${safeCss(button,'#E47C52')}!important;--cta-text:${safeCss(ctaText,'#173B35')}!important}body{background:${safeCss(themedColors.canvas,'#F7F2E8')}!important;color:${safeCss(themedColors.ink,'#173B35')}!important}.cta{background:var(--accent)!important;color:var(--cta-text)!important}</style>`);
   for (const [key, value] of Object.entries(values)) html = html.replaceAll(`{{${key}}}`, escapeHtml(String(value)));
   html = html.replace('</body>', `<script>
   (()=>{
@@ -78,7 +87,7 @@ export function makeHtml(template, data, width, height) {
       const elements=nodes.map((node,index)=>{
         const rect=node.getBoundingClientRect();
         const overflow=node.scrollHeight>node.clientHeight+1||node.scrollWidth>node.clientWidth+1||rect.left<canvasRect.left-1||rect.top<canvasRect.top-1||rect.right>canvasRect.right+1||rect.bottom>canvasRect.bottom+1;
-        return {index,selector:node.tagName.toLowerCase()+(node.className&&typeof node.className==='string'?'.'+node.className.trim().replace(/\\s+/g,'.'):''),background:getComputedStyle(node).backgroundColor,borderWidth:getComputedStyle(node).borderTopWidth,text:(node.innerText||node.textContent||'').trim(),fontSize:Math.round(parseFloat(getComputedStyle(node).fontSize)),overflow,overlaps:[],scrollHeight:node.scrollHeight,clientHeight:node.clientHeight,scrollWidth:node.scrollWidth,clientWidth:node.clientWidth,rect:{x:Math.round(rect.x),y:Math.round(rect.y),width:Math.round(rect.width),height:Math.round(rect.height)}};
+        const style=getComputedStyle(node); const luminance=value=>{const m=value.match(/\\d+/g);if(!m||m.length<3)return 0;const c=m.slice(0,3).map(x=>+x/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return .2126*c[0]+.7152*c[1]+.0722*c[2]};const l1=luminance(style.color),l2=luminance(style.backgroundColor); const contrastRatio=(Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05); return {index,selector:node.tagName.toLowerCase()+(node.className&&typeof node.className==='string'?'.'+node.className.trim().replace(/\\s+/g,'.'):''),background:style.backgroundColor,color:style.color,contrastRatio,borderWidth:style.borderTopWidth,text:(node.innerText||node.textContent||'').trim(),fontSize:Math.round(parseFloat(style.fontSize)),overflow,overlaps:[],scrollHeight:node.scrollHeight,clientHeight:node.clientHeight,scrollWidth:node.scrollWidth,clientWidth:node.clientWidth,rect:{x:Math.round(rect.x),y:Math.round(rect.y),width:Math.round(rect.width),height:Math.round(rect.height)}};
       });
       for(let i=0;i<elements.length;i++)for(let j=i+1;j<elements.length;j++){
         const a=elements[i].rect,b=elements[j].rect;
@@ -109,21 +118,28 @@ export function escapeHtml(value) {
   return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
 }
 
-function overflowAdvice(element) {
+function textLimit(element) {
   const selector = element.selector || '';
-  const value = element.text || '';
-  let name, limit, unit;
-  if (/(^|\.)cta($|\.)/i.test(selector)) {
-    [name, limit, unit] = ['CTA', 36, 'characters'];
-  } else if (/(^|\.)label($|\.)|(^|\.)eyebrow($|\.)/i.test(selector)) {
-    [name, limit, unit] = ['eyebrow', 6, 'words'];
-  } else if (selector === 'h1' || selector.startsWith('h1.')) {
-    [name, limit, unit] = ['hook/headline', 12, 'words'];
-  } else {
-    [name, limit, unit] = ['body', 24, 'words'];
-  }
-  const count = unit === 'characters' ? String(value).length : String(value).trim().split(/\s+/).filter(Boolean).length;
-  return `Shorten ${name} to ${limit} ${unit} maximum (current: ${count} ${unit}).`;
+  if (/(^|\.)cta($|\.)/i.test(selector)) return { name: 'CTA', limit: 36, unit: 'characters' };
+  if (/(^|\.)label($|\.)|(^|\.)eyebrow($|\.)/i.test(selector)) return { name: 'eyebrow', limit: 6, unit: 'words' };
+  if (selector === 'h1' || selector.startsWith('h1.')) return { name: 'hook/headline', limit: 12, unit: 'words' };
+  return { name: 'body', limit: 24, unit: 'words' };
+}
+function overflowAdvice(element, elements) {
+  const countText = item => String(item.text || '').trim();
+  const countFor = (item, unit) => unit === 'characters' ? countText(item).length : countText(item).split(/\s+/).filter(Boolean).length;
+  const own = textLimit(element), current = countFor(element, own.unit);
+  if (current > own.limit) return `Shorten ${own.name} to ${own.limit} ${own.unit} maximum (current: ${current} ${own.unit}, ${current - own.limit} over).`;
+  const preceding = elements.slice(0, element.index).filter(item => {
+    const limit = textLimit(item);
+    return countFor(item, limit.unit) > limit.limit;
+  }).map(item => {
+    const limit = textLimit(item), count = countFor(item, limit.unit);
+    return `${limit.name} is ${count - limit.limit} ${limit.unit} over its ${limit.limit} ${limit.unit} limit`;
+  });
+  return preceding.length
+    ? `${element.selector} is pushed below the story safe zone by content above it: ${preceding.join(' and ')}.`
+    : `Adjust the content above ${element.selector} to keep it inside the safe zone.`;
 }
 
 export async function render({ templatePath, dataPath, data: suppliedData, outPath, width, height, browser = findBrowser(), overwrite = false }) {
@@ -149,24 +165,30 @@ export async function render({ templatePath, dataPath, data: suppliedData, outPa
   fs.writeFileSync(temp, html);
   fs.mkdirSync(path.dirname(path.resolve(outPath)), { recursive: true });
   const url=pathToFileURL(temp).href;
-  if(!chromium) throw new Error('Renderer dependency missing. Reinstall the studio dependencies.');
-  let instance;for(const executablePath of [...new Set([browser,...findBrowsers()])]){try{instance=await chromium.launch({executablePath,headless:true,args:['--no-sandbox','--allow-file-access-from-files']});break;}catch{}}if(!instance)throw new Error('Install Google Chrome to run the browser renderer.');
+  const finalPath=path.resolve(outPath);
+  const renderPath=path.join(tempRoot, `render-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}.png`);
   try{
-    const page=await instance.newPage({viewport:{width:Number(width),height:Number(height)},deviceScaleFactor:1});
-    await page.goto(url,{waitUntil:'load'});
-    const diagnostics=await page.locator('#render-measurements').evaluate(node=>JSON.parse(decodeURIComponent(Array.from(atob(node.textContent.trim()),char=>'%'+char.charCodeAt(0).toString(16).padStart(2,'0')).join(''))));
+    let result;
+    for(const executablePath of [...new Set([browser,...findBrowsers()])]){
+      result=spawnSync(executablePath,['--headless','--no-sandbox','--disable-gpu','--allow-file-access-from-files',`--window-size=${Number(width)},${Number(height)}`,`--screenshot=${renderPath}`,'--dump-dom',url],{encoding:'utf8',maxBuffer:8*1024*1024});
+      if(result.status===0&&fs.existsSync(renderPath))break;
+    }
+    if(!result||result.status!==0||!fs.existsSync(renderPath))throw new Error('Install Google Chrome, Chromium or Microsoft Edge to run the browser renderer.');
+    const encoded=[...result.stdout.matchAll(/<pre id="render-measurements"[^>]*>([^<]+)<\/pre>/g)].at(-1)?.[1];
+    if(!encoded)throw new Error('Browser did not return the renderer measurements.');
+    const diagnostics=JSON.parse(Buffer.from(encoded,'base64').toString('utf8'));
     const overflows=diagnostics.elements.filter(item=>item.overflow);
     if(overflows.length){
       const details=overflows.map(item=>`${item.selector} (${item.fontSize}px at ${item.rect.x},${item.rect.y} ${item.rect.width}x${item.rect.height}, scroll ${item.scrollWidth}x${item.scrollHeight} client ${item.clientWidth}x${item.clientHeight}${item.overlaps.length?`, overlaps ${item.overlaps.join(',')}`:''})`).join(', ');
-      const advice=[...new Set(overflows.map(overflowAdvice))].join(' ');
+      const advice=[...new Set(overflows.map(item=>overflowAdvice(item,diagnostics.elements)))].join(' ');
       throw new Error(`Image text still overflows. ${advice} Elements: ${details}`);
     }
-    await page.screenshot({path:path.resolve(outPath),animations:'disabled'});
-    const dimensions=pngDimensions(outPath);
+    const dimensions=pngDimensions(renderPath);
     if(dimensions.width!==Number(width)||dimensions.height!==Number(height)) throw new Error(`Expected ${width}x${height}; got ${dimensions.width}x${dimensions.height}`);
+    fs.renameSync(renderPath, finalPath);
     return {...dimensions,measurements:diagnostics.elements,headlineFontSize:diagnostics.headlineFontSize};
   }finally{
-    await instance.close();
+    try{fs.unlinkSync(renderPath)}catch{}
     try{fs.unlinkSync(temp)}catch{}
   }
 }
@@ -185,9 +207,12 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
       const manifest=fs.existsSync(manifestPath)?JSON.parse(fs.readFileSync(manifestPath,'utf8')):{files:[]};
       const relative=path.relative(path.dirname(manifestPath),path.resolve(args.out)).split(path.sep).join('/');
       const data=args.data?JSON.parse(fs.readFileSync(args.data,'utf8')):{};
+      const sharedPath=studioRoot&&path.join(studioRoot,'brand/brand.json');const shared=sharedPath&&fs.existsSync(sharedPath)?JSON.parse(fs.readFileSync(sharedPath,'utf8')):{};const brand={...shared,...(data.brand||{})};const colors=brand.colors||{};const theme=(data.theme||brand.theme||'dark')==='light'?'light':'dark';const dark=colors.darkVariant||{};const canvasColor=theme==='dark'?(dark.canvas||colors.ink||'#173B35'):(colors.canvas||colors.background||'#F7F2E8');
       const ratio=Number(args.height)/Number(args.width)===1920/1080?'story':Number(args.height)/Number(args.width)===1350/1080?'feed':'square';
       const entry=manifest.files.find(file=>file.file===relative)||{file:relative,hook:data.hook||data.headline||'',width:Number(args.width),height:Number(args.height),ratio,template:path.basename(args.template,'.html'),layoutBox:ratio==='story'?[0.08,0.14,0.84,0.66]:null};
-      Object.assign(entry,{status:'rendered',headlineFontSize:dimensions.headlineFontSize,measurements:dimensions.measurements,overflow:dimensions.measurements.some(element=>element.overflow)});
+      const foregrounds=dimensions.measurements.filter(element=>element.text&&element.selector!== 'div.cta').map(element=>contrastRatio(element.color,canvasColor)).filter(Number.isFinite);
+      const textContrastRatio=foregrounds.length?Math.min(...foregrounds):null;
+      Object.assign(entry,{status:'rendered',headlineFontSize:dimensions.headlineFontSize,measurements:dimensions.measurements,overflow:dimensions.measurements.some(element=>element.overflow),canvasColor,textContrastRatio});
       if(!manifest.files.includes(entry))manifest.files.push(entry);
       fs.writeFileSync(manifestPath,`${JSON.stringify(manifest,null,2)}\n`);
     }

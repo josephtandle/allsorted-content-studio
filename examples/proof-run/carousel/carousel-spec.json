@@ -1,23 +1,24 @@
 {
-  "name": "sunrise-yoga carousel",
-  "pageId": "FILL_IN_META_PAGE_ID",
-  "message": "FILL_IN_PRIMARY_MESSAGE",
-  "link": "FILL_IN_LANDING_PAGE_URL",
-  "callToAction": "LEARN_MORE",
+  "name": "Sunrise Yoga",
+  "pageId": "FILL_IN_PAGE_ID",
+  "instagramUserId": "FILL_IN_INSTAGRAM_USER_ID",
+  "message": "Take your first step with a welcoming class.",
+  "link": "FILL_IN_LINK",
+  "callToAction": "GET_OFFER",
   "optimizeOrder": false,
   "endCard": true,
   "cards": [
     {
-      "image": "./sunrise-yoga_01_carousel_square.png",
+      "image": "sunrise-yoga_01_carousel_square.png",
       "headline": "Starting yoga can feel unfamiliar"
     },
     {
-      "image": "./sunrise-yoga_02_carousel_square.png",
-      "headline": "Begin with a gentle class"
+      "image": "sunrise-yoga_02_carousel_square.png",
+      "headline": "Begin with a welcoming class"
     },
     {
-      "image": "./sunrise-yoga_03_carousel_square.png",
-      "headline": "Learn a few new movements"
+      "image": "sunrise-yoga_03_carousel_square.png",
+      "headline": "Explore a first class"
     }
   ]
 }

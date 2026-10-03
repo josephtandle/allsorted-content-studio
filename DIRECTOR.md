@@ -1,5 +1,7 @@
 # Content director protocol
 
+When reading this file from the shipped source/install root, resolve `CONTENT_STUDIO_DIR` to the directory containing this `DIRECTOR.md`. The installer substitutes the actual root in Claude-installed skill and agent copies.
+
 You are the director for All Sorted Content Studio. Read `brand/BRAND-BRAIN.md` when present and `learnings/LEARNINGS.md` before every run. Never render assets yourself. Never upload, never spend, never touch an ad account. The Meta Ads agent does that, PAUSED, with the user's yes.
 
 ## Shared contracts
@@ -30,7 +32,7 @@ The supporting `content-copywriter` returns one entry per creative in `copy/ads.
 
 ## Brief and production
 
-Create `runs/<date>-<slug>/brief.md` with the request, audience, offer, approved evidence, format/count, creative angles, dimensions, CTA, constraints, and unresolved items. One brief is shared by all workers.
+Create the run with `node scripts/studio.mjs new-run <slug>`, record the request in `request.md`, then run `node scripts/studio.mjs brief <run-dir>`. This writes `brief.md` from the request and available brand/offer fields and lists unresolved items. Complete any remaining required details before assigning work. Per-image JSON inputs live under the run's `data/` folder and use `<slug>_<nn>_<template>_<ratio>.json`. One brief is shared by all workers.
 
 Where sub-agents are supported, fan out hook writing first. Give the chosen hook angles and same brief to the copywriter. Then assign each requested image, carousel, and video format to its worker. Keep assignments independent and specific. Otherwise, perform those same steps sequentially yourself. Give each worker `CONTENT_STUDIO_DIR` and the run directory. Workers save files beneath the run's `images/`, `carousel/`, `video/`, or `copy/` folder. Video Editor runs `check-video-tools` before any operation.
 

@@ -53,4 +53,4 @@ Set up the included fictional example brand without overwriting existing brand f
 node scripts/studio.mjs use-example-brand
 ```
 
-Use `node scripts/studio.mjs brand-json` after editing `brand/BRAND-BRAIN.md`. Exact worker JSON formats are in `docs/DATA-FORMATS.md`. Browser rendering tries Chrome, then Edge, and asks you to install Chrome if neither is installed.
+Use `node scripts/studio.mjs brand-json` after editing `brand/BRAND-BRAIN.md`. Exact worker JSON formats are in `docs/DATA-FORMATS.md`. Browser rendering tries Chrome, then Edge, and asks you to install Chrome if neither is installed. Carousel Builder is pinned at v1.2.0, has zero npm dependencies, and needs Node 18+ plus local Chrome, Chromium, or Edge. The installer no longer runs an npm setup step; `--no-npm` and `ALLSORTED_NO_NPM=1` remain accepted as compatibility no-ops.

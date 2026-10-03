@@ -15,15 +15,16 @@ test('fails plainly named elements below mobile legibility floors', () => {
   const dir = fs.mkdtempSync(path.join(testRoot, 'creative-qa-'));
   fs.mkdirSync(path.join(dir, 'outputs'));
   fs.writeFileSync(path.join(dir, 'outputs/card.png'), header(1080, 1920));
-  const manifest = { ratio: 'story', files: [{ file: 'outputs/card.png', width: 1080, height: 1920, headlineFontSize: 68, bodyFontSize: 38, visibleFontSize: 28, layoutBox: [0.08, 0.20, 0.84, 0.60], measurements: [{selector:'div.cta',text:'Book now',background:'rgb(233, 130, 86)',borderWidth:'2px',overlaps:[]}] }] };
+  const manifest = { ratio: 'story', files: [{ file: 'outputs/card.png', width: 1080, height: 1920, headlineFontSize: 68, bodyFontSize: 38, visibleFontSize: 28, layoutBox: [0.08, 0.20, 0.84, 0.60], measurements: [{selector:'div.cta',text:'Book now',background:'rgb(20, 50, 40)',color:'rgb(255, 255, 255)',contrastRatio:8,borderWidth:'2px',overlaps:[]}] }] };
   fs.writeFileSync(path.join(dir, 'manifest.json'), JSON.stringify(manifest));
   const tooSmall = checkManifest(path.join(dir, 'manifest.json')).errors.join(' ');
   assert.match(tooSmall, /headline text is too small/);
   assert.match(tooSmall, /body text is too small/);
   assert.match(tooSmall, /visible text is too small/);
-  manifest.files[0] = { ...manifest.files[0], headlineFontSize: 120, bodyFontSize: 52, visibleFontSize: 48 };
+  manifest.files[0] = { ...manifest.files[0], headlineFontSize: 120, bodyFontSize: 52, visibleFontSize: 48, canvasColor:'#173B35', textContrastRatio:8 };
   fs.writeFileSync(path.join(dir, 'manifest.json'), JSON.stringify(manifest));
   assert.deepEqual(checkManifest(path.join(dir, 'manifest.json')).errors, []);
+  manifest.files[0].measurements[0].contrastRatio=4.49;manifest.files[0].textContrastRatio=4.49;fs.writeFileSync(path.join(dir,'manifest.json'),JSON.stringify(manifest));const lowContrast=checkManifest(path.join(dir,'manifest.json')).errors.join(' ');assert.match(lowContrast,/CTA text contrast is below 4\.5:1/);assert.match(lowContrast,/text\/background contrast is below 4\.5:1/);manifest.files[0].measurements[0].contrastRatio=8;manifest.files[0].textContrastRatio=8;
   manifest.files[0].layoutBox = [0.08, 0.1, 0.84, 0.7];
   fs.writeFileSync(path.join(dir, 'manifest.json'), JSON.stringify(manifest));
   assert.match(checkManifest(path.join(dir, 'manifest.json')).errors.join(' '), /safe area/);
@@ -33,7 +34,7 @@ test('fails plainly named elements below mobile legibility floors', () => {
   assert.match(overflowErrors,/manifest reports text overflow/);
   assert.match(overflowErrors,/h1 overflows/);
   assert.match(overflowErrors,/overlaps another text block/);
-  manifest.files[0]={...manifest.files[0],headlineFontSize:120,bodyFontSize:52,visibleFontSize:48,layoutBox:[0.08,0.14,0.84,0.66],measurements:[{selector:'div.cta',text:'Book now',background:'rgba(0, 0, 0, 0)',borderWidth:'0px',overlaps:[1]}]};
+  manifest.files[0]={...manifest.files[0],headlineFontSize:120,bodyFontSize:52,visibleFontSize:48,layoutBox:[0.08,0.14,0.84,0.66],canvasColor:'#173B35',textContrastRatio:8,measurements:[{selector:'div.cta',text:'Book now',background:'rgba(0, 0, 0, 0)',contrastRatio:1,color:'#fff',borderWidth:'0px',overlaps:[1]}]};
   fs.writeFileSync(path.join(dir,'manifest.json'),JSON.stringify(manifest));
   const ctaErrors=checkManifest(path.join(dir,'manifest.json')).errors.join(' ');
   assert.match(ctaErrors,/CTA has no distinct button background or border/);

@@ -8,7 +8,7 @@ function pathExists(file) { try { fs.lstatSync(file); return true; } catch { ret
 function sameFile(file, bytes) {
   try { return fs.statSync(file).isFile() && fs.readFileSync(file).equals(bytes); } catch { return false; }
 }
-function copyTree(source, target, rel = '', skipPersonal = false) {
+function copyTree(source, target, rel = '', skipPersonal = false, resolvePlaceholder = false) {
   fs.mkdirSync(target, { recursive: true });
   for (const entry of fs.readdirSync(source, { withFileTypes: true })) {
     const child = rel ? `${rel}/${entry.name}` : entry.name;
@@ -16,10 +16,10 @@ function copyTree(source, target, rel = '', skipPersonal = false) {
     if (child === '.git' || child.startsWith('.git/') || child.split('/').includes('node_modules')) continue;
     if (child === '.test-data' || child.startsWith('.test-data/') || child.startsWith('runs/') || protectedPaths.has(child)) continue;
     const from = path.join(source, entry.name), to = path.join(target, entry.name);
-    if (entry.isDirectory()) copyTree(from, to, child, false);
+    if (entry.isDirectory()) copyTree(from, to, child, false, resolvePlaceholder);
     else if (entry.isFile()) {
       let content = fs.readFileSync(from);
-      if (from.endsWith('.md')) content = Buffer.from(content.toString('utf8').replaceAll('CONTENT_STUDIO_DIR', dest));
+      if (resolvePlaceholder && from.endsWith('.md')) content = Buffer.from(content.toString('utf8').replaceAll('CONTENT_STUDIO_DIR', dest));
       if (!fs.existsSync(to) || !fs.readFileSync(to).equals(content)) fs.writeFileSync(to, content);
     }
   }
@@ -69,7 +69,7 @@ function backup(target, name) {
 }
 function safeSkill(source, target, label, ignorePersonal = false) {
   if (pathExists(target) && !sameTree(source, target, ignorePersonal)) backup(target, label);
-  copyTree(source, target);
+  copyTree(source, target, '', false, true);
   const marker = path.join(target, 'studio-root'), markerBytes = Buffer.from(`${dest}\n`);
   if (!sameFile(marker, markerBytes)) fs.writeFileSync(marker, markerBytes);
 }
@@ -83,7 +83,10 @@ function copyPersonal(source, target) {
   }
 }
 fs.mkdirSync(dest, { recursive: true });
-copyTree(src, dest);
+// In-place install: the source tree is already the install root. Never rewrite
+// shipped files there (placeholder substitution belongs only in Claude copies).
+const sameRoot = fs.realpathSync(src) === fs.realpathSync(dest);
+if (!sameRoot) copyTree(src, dest);
 const learnings = path.join(dest, 'learnings/LEARNINGS.md');
 if (!pathExists(learnings)) {
   fs.mkdirSync(path.dirname(learnings), { recursive: true });
@@ -96,7 +99,7 @@ safeSkill(path.join(dest, 'tools/ad-images'), path.join(skills, 'ad-images'), 'a
 safeSkill(path.join(dest, 'tools/heygen-ad-videos'), path.join(skills, 'heygen-ad-videos'), 'heygen-ad-videos');
 const hook = path.join(skills, 'hooklab'), hookSource = path.join(dest, 'tools/hooklab');
 const priorHook = pathExists(hook) && !sameTree(hookSource, hook, true) ? backup(hook, 'hooklab') : null;
-copyTree(hookSource, hook, '', true);
+copyTree(hookSource, hook, '', true, true);
 copyPersonal(priorHook && path.join(priorHook, 'personal'), path.join(hook, 'personal'));
 copyPersonal(path.join(hookSource, 'personal'), path.join(hook, 'personal'));
 for (const entry of fs.readdirSync(path.join(dest, 'agents'), { withFileTypes: true })) {

@@ -1,4 +1,6 @@
-Upstream: https://github.com/josephtandle/ultimate-hooklab-skill (b7ffa880, same tree as fc11e9e)
-Copied from: the All Sorted skills module payload (skills 1.3) on 2026-10-02
-Personal folder ships as empty templates only.
-Local change: mode-1 and mode-2 now read quotes from your own personal/ files instead of a private quote source.
+Upstream: https://github.com/josephtandle/ultimate-hooklab-skill
+Version: skills 1.3.2
+Dist commit: f91eda8
+Date: 2026-10-02
+Copied from: the shipped All Sorted distribution at skills/module/skills/hooklab
+Studio-owned file: STUDIO-MODE.md

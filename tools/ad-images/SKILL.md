@@ -1,6 +1,6 @@
 ---
 name: ad-images
-description: Make, vary, and check Meta ad images and carousels with editable HTML templates. Use when the student says “make ad creatives”, “make a carousel”, “ad variations”, or “check my ad”. No API key is needed for the core workflow.
+description: Make, vary, and check Meta ad images and carousels with editable HTML templates. Use when the student says “make ad creatives”, “make a carousel”, “ad variations”, or “check my ad”.
 ---
 
 # Ad Images
@@ -51,7 +51,7 @@ Show all scores, the total out of 50, and the top 3. These are editorial judgmen
 
 ## 3. Build the creatives offline
 
-The core uses agent-written HTML and CSS, the bundled templates, and `scripts/render.mjs`. It needs Node.js 18 or later and a supported Chromium browser. It does not need an API key or npm install.
+The core uses agent-written HTML and CSS, the bundled templates, and `scripts/render.mjs`. It needs Node.js 18 or later and a supported Chromium browser, with no npm install.
 
 Available original editable templates in `templates/`:
 
@@ -70,23 +70,23 @@ Supported sizes:
 - `feed`: 1080 × 1350, 4:5.
 - `story`: 1080 × 1920, 9:16. Keep every text box inside the central safe area, below the top 14% and above the bottom 20%.
 
-For a carousel, make 2 to 10 square slides. Give each slide one job and keep the visual system consistent. Do not shrink copy until it becomes hard to read. Use `creatives/batch.json` as the batch input: an object with `offer`, `format`, `ratio`, and 5 or 6 `variations`, each containing `hookNumber`, `template`, `hook`, `body`, `cta`, and optional `colors`. Run one command:
+For a carousel, make 2 to 10 square slides. Give each slide one job and keep the visual system consistent. Do not shrink copy until it becomes hard to read. In a studio run, use `RUN_DIR/images/batch.json` as the batch input: an object with `offer`, `format`, `ratio`, and 5 or 6 `variations`, each containing `hookNumber`, `template`, `hook`, `body`, `cta`, and optional `colors`. Run one command:
 
 ```text
-node "{{SKILL_DIR}}/scripts/batch.mjs" creatives/batch.json
+node "{{SKILL_DIR}}/scripts/batch.mjs" "RUN_DIR/images/batch.json"
 ```
 
-The batch script creates five or six PNGs, named `<slug>_<nn>_<template-or-carousel>_<ratio>.png` as defined in `DIRECTOR.md`, and updates `creatives/manifest.json` with every file, hook, pixel size, and status. Keep offer slugs short, lowercase, and filesystem-safe.
+The batch script writes images and `manifest.json` directly into `RUN_DIR/images/`, plus each input JSON into `RUN_DIR/data/<slug>_<nn>_<template>_<ratio>.json`. Keep offer slugs short, lowercase, and filesystem-safe. For an intentional fix round, run `node "{{SKILL_DIR}}/scripts/batch.mjs" "RUN_DIR/images/batch.json" --overwrite`.
 
 To render one creative directly:
 
 ```text
-node "{{SKILL_DIR}}/scripts/render.mjs" --template "{{SKILL_DIR}}/templates/hook-card.html" --data creatives/sunrise-yoga_01_hook-card_feed.json --out creatives/sunrise-yoga_01_hook-card_feed.png --width 1080 --height 1350
+node "{{SKILL_DIR}}/scripts/render.mjs" --template "{{SKILL_DIR}}/templates/hook-card.html" --data "RUN_DIR/data/sunrise-yoga_01_hook-card_feed.json" --out "RUN_DIR/images/sunrise-yoga_01_hook-card_feed.png" --width 1080 --height 1350
 ```
 
-Read `docs/DATA-FORMATS.md` for the exact complete `image-data.json` and batch formats. Every creative must render a distinct CTA button that does not overlap body text. Escape HTML values. Use system fonts and CSS variables so output works offline. Keep the HTML editable and retain the supplied template's layout-box metadata.
+Read `docs/DATA-FORMATS.md` for the exact per-image data path and batch formats. Every creative must render a distinct CTA button that does not overlap body text; QA checks text/canvas and CTA/button contrast at 4.5:1. Escape HTML values. Use system fonts and CSS variables so output works offline. Keep the HTML editable and retain the supplied template's layout-box metadata.
 
-If no Chromium browser is found, use the fallback printed by the renderer. Do not install project dependencies. Students can also make a photo in your image generation tool or your image generation tool and put it in `inputs/`; the HTML templates can use a local image path when appropriate. your agent workspace does not make the photo itself.
+If no Chromium browser is found, install Chrome, Chromium, or Edge and retry. Do not install project dependencies. Students can also make a photo in your image generation tool or your image generation tool and put it in `inputs/`; the HTML templates can use a local image path when appropriate. your agent workspace does not make the photo itself.
 
 ## 4. Check the output
 

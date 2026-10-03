@@ -1,8 +1,4 @@
+.carousel/
 node_modules/
-workspace/
-.env
-.next/
-playwright-report/
-test-results/
-
-workspace/.test-data/
+.DS_Store
+*.log

@@ -1,16 +1,16 @@
 {
   "ads": [
     {
-      "creative": "images/sunrise-yoga_01_hook-card_square.png",
+      "creative": "images/sunrise-yoga_01_offer-card_square.png",
       "headline": "A calmer start",
-      "primary_text": "A welcoming first yoga class at your own pace.",
+      "primary_text": "A welcoming first yoga class, at your own pace.",
       "link_description": "View beginner class times",
       "cta_type": "BOOK_NOW",
-      "button_text": "See the beginner class schedule"
+      "button_text": "See the class schedule"
     },
     {
-      "creative": "images/sunrise-yoga_02_problem-solution_square.png",
-      "headline": "Find your first class",
+      "creative": "images/sunrise-yoga_02_hook-card_story.png",
+      "headline": "Find a first class",
       "primary_text": "Explore a calm introduction to yoga.",
       "link_description": "See class details",
       "cta_type": "SIGN_UP",
@@ -18,10 +18,11 @@
     },
     {
       "creative": "carousel/carousel-spec.json",
+      "headline": "Explore a first class",
       "primary_text": "Take your first step with a welcoming class.",
       "link_description": "Browse beginner sessions",
       "cta_type": "GET_OFFER",
-      "button_text": "See class options"
+      "button_text": "See the class schedule"
     }
   ]
 }

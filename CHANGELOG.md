@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.2
+
+- Licensed under the All Sorted Personal Use License: use it for yourself, never sell or redistribute it. Every LICENSE file, package.json and README now says so.
+
 ## 1.1.1
 
 - Replaced unresolved studio-root instructions in shipped root docs with a file-relative rule.

@@ -1,6 +1,7 @@
 {
   "name": "video-editor",
   "version": "1.0.0",
+  "license": "SEE LICENSE IN LICENSE",
   "private": true,
   "description": "Local, mechanical video-editing operations over ffmpeg. No network calls, no credentials.",
   "main": "index.js",

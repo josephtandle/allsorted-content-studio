@@ -299,4 +299,4 @@ The suite uses a scripted fetch throughout and makes no network calls.
 
 ## Licence
 
-MIT. See `LICENSE`. Bundled fonts carry their own open licences: see `kit/fonts/FONTS-NOTICE.txt`.
+All Sorted Personal Use License: use it for yourself, never sell or redistribute it. See LICENSE. Bundled fonts carry their own open licences: see `kit/fonts/FONTS-NOTICE.txt`.

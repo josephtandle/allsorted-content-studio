@@ -19,7 +19,7 @@ test("DEFAULT_BRAND is neutral: no byline, logo or portrait, all chrome off", ()
   assert.equal(DEFAULT_BRAND.logo, null);
   assert.equal(DEFAULT_BRAND.portrait, null);
   for (const v of Object.values(DEFAULT_BRAND.chrome)) assert.equal(v, false);
-  assert.deepEqual(Object.keys(DEFAULT_BRAND.colors), ["bg", "bgDeep", "bgAlt", "text", "accent", "accentSoft", "highlight"]);
+  assert.deepEqual(Object.keys(DEFAULT_BRAND.colors), ["bg", "bgDeep", "bgAlt", "text", "accent", "accentSoft", "highlight", "ctaText"]);
 });
 
 test("brandCss(DEFAULT_BRAND) matches the defaults written in kit/tokens.css", () => {

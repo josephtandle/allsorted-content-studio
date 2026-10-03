@@ -103,13 +103,6 @@
             "contrastRatio": 3.958091757694918
           },
           {
-            "kind": "eyebrow",
-            "fontSize": 32,
-            "color": "rgb(255, 248, 236)",
-            "canvas": "rgb(37, 68, 59)",
-            "contrastRatio": 10.103387064908325
-          },
-          {
             "kind": "supporting",
             "fontSize": 44,
             "color": "rgb(255, 248, 236)",
@@ -118,7 +111,9 @@
           }
         ],
         "cta": {
-          "background": "#E98256",
+          "background": "#a95e3e",
+          "color": "#FFF8EC",
+          "contrastRatio": 4.5644349945835465,
           "border": "0px"
         }
       }

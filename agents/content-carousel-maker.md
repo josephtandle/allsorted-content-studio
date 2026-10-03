@@ -13,4 +13,10 @@ node "CONTENT_STUDIO_DIR/scripts/carousel.mjs" "RUN_DIR"
 node "CONTENT_STUDIO_DIR/scripts/studio.mjs" check "RUN_DIR"
 ```
 
-Input is `RUN_DIR/carousel-data.json`; save its carousel spec and manifest in `RUN_DIR/carousel/`. Fix all QA failures. On a fix-round re-render, add `--overwrite` to the `carousel.mjs` command; rendering refuses to replace files by default.
+Fix-round overwrite command:
+
+```sh
+node "CONTENT_STUDIO_DIR/scripts/carousel.mjs" "RUN_DIR" --overwrite
+```
+
+Input is `RUN_DIR/carousel-data.json`; save its carousel spec and manifest in `RUN_DIR/carousel/`. Closing slide order is eyebrow, headline, CTA, supporting body. Per-image JSON files, when used, belong in `RUN_DIR/data/` and follow `<slug>_<nn>_<template>_<ratio>.json`. Fix all QA failures. Rendering refuses to replace files by default.

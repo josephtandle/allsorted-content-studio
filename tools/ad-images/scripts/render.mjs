@@ -35,6 +35,12 @@ export function pngDimensions(file) {
   return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
 }
 
+export function contrastRatio(foreground, background) {
+  const parse=value=>{const s=String(value||'').trim();const m=s.match(/^#([\da-f]{3}|[\da-f]{6})$/i);if(m){const h=m[1].length===3?[...m[1]].map(x=>x+x).join(''):m[1];return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16));}const rgb=s.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);return rgb?[+rgb[1],+rgb[2],+rgb[3]]:null;};
+  const luminance=value=>{const c=parse(value);if(!c)return null;const [r,g,b]=c.map(x=>x/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return .2126*r+.7152*g+.0722*b;};
+  const a=luminance(foreground),b=luminance(background);return a===null||b===null?null:(Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+}
+
 function safeCss(value, fallback) {
   const text = String(value || fallback);
   return /[;{}<>]/.test(text) ? fallback : text;
@@ -50,8 +56,16 @@ export function makeHtml(template, data, width, height) {
   const themedColors = theme === 'dark'
     ? { canvas: dark.canvas || colors.ink || '#173B35', ink: dark.ink || colors.canvas || colors.background || '#F7F2E8', accent: dark.accent || colors.accent || '#E47C52' }
     : { canvas: colors.canvas || colors.background || '#F7F2E8', ink: colors.ink || '#173B35', accent: colors.accent || '#E47C52' };
+  const rgb = value => { const s=String(value||'').trim(); const m=s.match(/^#([\da-f]{3}|[\da-f]{6})$/i); if(m){const h=m[1].length===3?[...m[1]].map(x=>x+x).join(''):m[1];return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16));} const a=s.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i); return a?[+a[1],+a[2],+a[3]]:null; };
+  const lum = value => { const c=rgb(value); if(!c)return 0; const [r,g,b]=c.map(x=>x/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4); return .2126*r+.7152*g+.0722*b; };
+  const contrast = (a,b) => {const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);};
+  if(contrast(themedColors.accent,themedColors.canvas)<4.5){const original=rgb(themedColors.accent),target=lum(themedColors.canvas)<lum(themedColors.accent)?255:0;if(original)for(let step=1;step<=120&&contrast(themedColors.accent,themedColors.canvas)<4.5;step++){const f=step/120;themedColors.accent=`#${original.map(v=>Math.round(v+(target-v)*f).toString(16).padStart(2,'0')).join('')}`;}}
+  const candidates=[themedColors.ink,themedColors.canvas].map(color=>({color,ratio:contrast(color,themedColors.accent)})).sort((a,b)=>b.ratio-a.ratio);
+  let button=themedColors.accent;
+  if(candidates[0].ratio<4.5){const c=rgb(button)||[233,130,86]; for(let i=0;i<120&&Math.max(contrast(themedColors.ink,button),contrast(themedColors.canvas,button))<4.5;i++){const factor=1-i/120;button=`#${c.map(v=>Math.round(v*factor).toString(16).padStart(2,'0')).join('')}`;}}
+  const ctaText=[themedColors.ink,themedColors.canvas].sort((a,b)=>contrast(b,button)-contrast(a,button))[0];
   const values = {
-    BACKGROUND: safeCss(themedColors.canvas, '#F7F2E8'), INK: safeCss(themedColors.ink, '#173B35'), ACCENT: safeCss(themedColors.accent, '#E47C52'),
+    BACKGROUND: safeCss(themedColors.canvas, '#F7F2E8'), INK: safeCss(themedColors.ink, '#173B35'), ACCENT: safeCss(button, '#E47C52'),
     DISPLAY_FONT: safeCss(fonts.display, 'Georgia'), BODY_FONT: safeCss(fonts.body, 'Arial'), BRAND: data.brandName || brand.brandName || 'Your business',
     HOOK: data.hook || data.headline || '', HEADLINE: data.headline || '', BODY: data.body || '', CTA: data.cta || '',
     TIP1: data.tips?.[0] || data.tip1 || '', TIP2: data.tips?.[1] || data.tip2 || '', TIP3: data.tips?.[2] || data.tip3 || '', PROOF: data.proof || '',
@@ -63,7 +77,7 @@ export function makeHtml(template, data, width, height) {
     html = html.replace(/data-layout-box="[^"]+"/g, 'data-layout-box="0.08,0.14,0.84,0.66"');
   }
   html=html.replace('</style>','.canvas h1{height:auto!important;max-height:none!important;overflow:visible!important;padding-bottom:8px!important}</style>');
-  html=html.replace('</style>',`:root{--paper:${safeCss(themedColors.canvas,'#F7F2E8')}!important;--ink:${safeCss(themedColors.ink,'#173B35')}!important;--accent:${safeCss(themedColors.accent,'#E47C52')}!important}body{background:${safeCss(themedColors.canvas,'#F7F2E8')}!important;color:${safeCss(themedColors.ink,'#173B35')}!important}.cta{background:var(--accent)!important;color:${safeCss(themedColors.ink,'#173B35')}!important}</style>`);
+  html=html.replace('</style>',`:root{--paper:${safeCss(themedColors.canvas,'#F7F2E8')}!important;--ink:${safeCss(themedColors.ink,'#173B35')}!important;--accent:${safeCss(button,'#E47C52')}!important;--cta-text:${safeCss(ctaText,'#173B35')}!important}body{background:${safeCss(themedColors.canvas,'#F7F2E8')}!important;color:${safeCss(themedColors.ink,'#173B35')}!important}.cta{background:var(--accent)!important;color:var(--cta-text)!important}</style>`);
   for (const [key, value] of Object.entries(values)) html = html.replaceAll(`{{${key}}}`, escapeHtml(String(value)));
   html = html.replace('</body>', `<script>
   (()=>{
@@ -77,7 +91,7 @@ export function makeHtml(template, data, width, height) {
       const elements=nodes.map((node,index)=>{
         const rect=node.getBoundingClientRect();
         const overflow=node.scrollHeight>node.clientHeight+1||node.scrollWidth>node.clientWidth+1||rect.left<canvasRect.left-1||rect.top<canvasRect.top-1||rect.right>canvasRect.right+1||rect.bottom>canvasRect.bottom+1;
-        return {index,selector:node.tagName.toLowerCase()+(node.className&&typeof node.className==='string'?'.'+node.className.trim().replace(/\\s+/g,'.'):''),background:getComputedStyle(node).backgroundColor,borderWidth:getComputedStyle(node).borderTopWidth,text:(node.innerText||node.textContent||'').trim(),fontSize:Math.round(parseFloat(getComputedStyle(node).fontSize)),overflow,overlaps:[],scrollHeight:node.scrollHeight,clientHeight:node.clientHeight,scrollWidth:node.scrollWidth,clientWidth:node.clientWidth,rect:{x:Math.round(rect.x),y:Math.round(rect.y),width:Math.round(rect.width),height:Math.round(rect.height)}};
+        const style=getComputedStyle(node); const luminance=value=>{const m=value.match(/\\d+/g);if(!m||m.length<3)return 0;const c=m.slice(0,3).map(x=>+x/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return .2126*c[0]+.7152*c[1]+.0722*c[2]};const l1=luminance(style.color),l2=luminance(style.backgroundColor); const contrastRatio=(Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05); return {index,selector:node.tagName.toLowerCase()+(node.className&&typeof node.className==='string'?'.'+node.className.trim().replace(/\\s+/g,'.'):''),background:style.backgroundColor,color:style.color,contrastRatio,borderWidth:style.borderTopWidth,text:(node.innerText||node.textContent||'').trim(),fontSize:Math.round(parseFloat(style.fontSize)),overflow,overlaps:[],scrollHeight:node.scrollHeight,clientHeight:node.clientHeight,scrollWidth:node.scrollWidth,clientWidth:node.clientWidth,rect:{x:Math.round(rect.x),y:Math.round(rect.y),width:Math.round(rect.width),height:Math.round(rect.height)}};
       });
       for(let i=0;i<elements.length;i++)for(let j=i+1;j<elements.length;j++){
         const a=elements[i].rect,b=elements[j].rect;
@@ -186,9 +200,12 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
       const manifest=fs.existsSync(manifestPath)?JSON.parse(fs.readFileSync(manifestPath,'utf8')):{files:[]};
       const relative=path.relative(path.dirname(manifestPath),path.resolve(args.out)).split(path.sep).join('/');
       const data=args.data?JSON.parse(fs.readFileSync(args.data,'utf8')):{};
+      const sharedPath=studioRoot&&path.join(studioRoot,'brand/brand.json');const shared=sharedPath&&fs.existsSync(sharedPath)?JSON.parse(fs.readFileSync(sharedPath,'utf8')):{};const brand={...shared,...(data.brand||{})};const colors=brand.colors||{};const theme=(data.theme||brand.theme||'dark')==='light'?'light':'dark';const dark=colors.darkVariant||{};const canvasColor=theme==='dark'?(dark.canvas||colors.ink||'#173B35'):(colors.canvas||colors.background||'#F7F2E8');
       const ratio=Number(args.height)/Number(args.width)===1920/1080?'story':Number(args.height)/Number(args.width)===1350/1080?'feed':'square';
       const entry=manifest.files.find(file=>file.file===relative)||{file:relative,hook:data.hook||data.headline||'',width:Number(args.width),height:Number(args.height),ratio,template:path.basename(args.template,'.html'),layoutBox:ratio==='story'?[0.08,0.14,0.84,0.66]:null};
-      Object.assign(entry,{status:'rendered',headlineFontSize:dimensions.headlineFontSize,measurements:dimensions.measurements,overflow:dimensions.measurements.some(element=>element.overflow)});
+      const foregrounds=dimensions.measurements.filter(element=>element.text&&element.selector!== 'div.cta').map(element=>contrastRatio(element.color,canvasColor)).filter(Number.isFinite);
+      const textContrastRatio=foregrounds.length?Math.min(...foregrounds):null;
+      Object.assign(entry,{status:'rendered',headlineFontSize:dimensions.headlineFontSize,measurements:dimensions.measurements,overflow:dimensions.measurements.some(element=>element.overflow),canvasColor,textContrastRatio});
       if(!manifest.files.includes(entry))manifest.files.push(entry);
       fs.writeFileSync(manifestPath,`${JSON.stringify(manifest,null,2)}\n`);
     }

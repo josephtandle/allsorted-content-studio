@@ -22,6 +22,7 @@ test('all six image templates render a separate accent button CTA in the content
     const html=fs.readFileSync(path.join(root,'templates',filename),'utf8');
     assert.match(html,/<[^>]+class="cta"[^>]*>\{\{CTA\}\}<\//,filename);
     assert.match(html,/\.cta\{[^}]*background:var\(--accent\)[^}]*color:var\(--ink\)[^}]*padding:[^}]*border-radius:/,filename);
+    assert.match(makeHtml(html,{brand:{colors:{canvas:'#FFF8EC',ink:'#25443B',accent:'#E98256'}},cta:'Book now'},1080,1080),/--cta-text:#(?:25443B|FFF8EC)!important/);
     assert.match(html,/\.canvas\{[^}]*display:flex[^}]*flex-direction:column/,filename);
   }
 });
@@ -32,6 +33,13 @@ test('explicit light and dark themes consistently apply brand canvas and ink rol
   const light=makeHtml(template,{brand,theme:'light'},1080,1080),dark=makeHtml(template,{brand,theme:'dark'},1080,1080);
   assert.match(light,/body\{background:#FFF8EC!important;color:#25443B!important\}/);
   assert.match(dark,/body\{background:#25443B!important;color:#FFF8EC!important\}/);
+});
+
+test('CTA chooses a readable foreground and darkens an accent when needed',()=>{
+  const template=fs.readFileSync(path.join(root,'templates/offer-card.html'),'utf8');
+  const html=makeHtml(template,{theme:'light',brand:{colors:{canvas:'#FFFFFF',ink:'#000000',accent:'#FFCC00'}}},1080,1080);
+  assert.match(html,/--accent:#(?:[0-9a-f]{6})!important/i);
+  assert.match(html,/--cta-text:#(?:000000|FFFFFF)!important/);
 });
 
 test('carousel colour integration belongs to the engine adapter; image templates keep their theme roles',()=>{

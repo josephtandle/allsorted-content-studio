@@ -28,6 +28,7 @@ const DEFAULT_BRAND = Object.freeze({
     accent: "#2FB5A6",
     accentSoft: "#93DDD3",
     highlight: "#CDEFE9",
+    ctaText: "#101314",
   }),
   fonts: Object.freeze({
     display: Object.freeze({ family: "Cormorant Garamond", file: null }),
@@ -40,7 +41,7 @@ const DEFAULT_BRAND = Object.freeze({
   defaultHashtags: Object.freeze([]),
 });
 
-const COLOR_KEYS = ["bg", "bgDeep", "bgAlt", "text", "accent", "accentSoft", "highlight"];
+const COLOR_KEYS = ["bg", "bgDeep", "bgAlt", "text", "accent", "accentSoft", "highlight", "ctaText"];
 const CHROME_KEYS = ["showByline", "showCounter", "showProgress", "showCue", "showCorners"];
 const FONT_EXT = new Set([".woff2", ".woff", ".ttf", ".otf"]);
 const FONT_FORMAT = { ".woff2": "woff2", ".woff": "woff", ".ttf": "truetype", ".otf": "opentype" };
@@ -210,6 +211,7 @@ function brandCss(brand, opts) {
     ["--bg-alt", c.bgAlt], ["--bg-alt-rgb", rgb(c.bgAlt)],
     ["--text", c.text], ["--text-rgb", rgb(c.text)],
     ["--accent", c.accent], ["--accent-rgb", rgb(c.accent)],
+    ["--cta-text", c.ctaText || c.bg],
     ["--accent-mid", accentMid], ["--accent-mid-rgb", rgb(accentMid)],
     ["--accent-soft", c.accentSoft], ["--accent-soft-rgb", rgb(c.accentSoft)],
     ["--accent-deep", accentDeep],

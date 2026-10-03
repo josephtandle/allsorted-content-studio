@@ -1,20 +1,22 @@
 {
   "files": [
     {
-      "file": "sunrise-yoga_01_hook-card_feed.png",
+      "file": "sunrise-yoga_01_offer-card_square.png",
       "hook": "A calmer start begins here",
       "width": 1080,
-      "height": 1350,
-      "ratio": "feed",
-      "template": "hook-card",
+      "height": 1080,
+      "ratio": "square",
+      "template": "offer-card",
       "layoutBox": null,
       "status": "rendered",
-      "headlineFontSize": 106,
+      "headlineFontSize": 103,
       "measurements": [
         {
           "index": 0,
-          "selector": "div.eyebrow",
+          "selector": "div.label",
           "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(236, 146, 107)",
+          "contrastRatio": 8.89043451358998,
           "borderWidth": "0px",
           "text": "SUNRISE YOGA STUDIO",
           "fontSize": 34,
@@ -22,12 +24,12 @@
           "overlaps": [],
           "scrollHeight": 39,
           "clientHeight": 39,
-          "scrollWidth": 920,
-          "clientWidth": 920,
+          "scrollWidth": 884,
+          "clientWidth": 884,
           "rect": {
-            "x": 80,
-            "y": 364,
-            "width": 920,
+            "x": 98,
+            "y": 253,
+            "width": 884,
             "height": 39
           }
         },
@@ -35,46 +37,52 @@
           "index": 1,
           "selector": "h1",
           "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(255, 248, 236)",
+          "contrastRatio": 19.890186432815256,
           "borderWidth": "0px",
           "text": "A calmer start begins here",
-          "fontSize": 106,
+          "fontSize": 103,
           "overflow": false,
           "overlaps": [],
-          "scrollHeight": 224,
-          "clientHeight": 224,
-          "scrollWidth": 900,
-          "clientWidth": 900,
+          "scrollHeight": 221,
+          "clientHeight": 221,
+          "scrollWidth": 884,
+          "clientWidth": 884,
           "rect": {
-            "x": 80,
-            "y": 476,
-            "width": 900,
-            "height": 224
+            "x": 98,
+            "y": 317,
+            "width": 884,
+            "height": 221
           }
         },
         {
           "index": 2,
           "selector": "p",
           "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(255, 248, 236)",
+          "contrastRatio": 19.890186432815256,
           "borderWidth": "0px",
           "text": "Try one gentle beginner class this week.",
           "fontSize": 46,
           "overflow": false,
           "overlaps": [],
-          "scrollHeight": 56,
-          "clientHeight": 56,
-          "scrollWidth": 900,
-          "clientWidth": 900,
+          "scrollHeight": 62,
+          "clientHeight": 62,
+          "scrollWidth": 884,
+          "clientWidth": 884,
           "rect": {
-            "x": 80,
-            "y": 774,
-            "width": 900,
-            "height": 56
+            "x": 98,
+            "y": 609,
+            "width": 884,
+            "height": 62
           }
         },
         {
           "index": 3,
           "selector": "div.cta",
-          "background": "rgb(233, 130, 86)",
+          "background": "rgb(236, 146, 107)",
+          "color": "rgb(37, 68, 59)",
+          "contrastRatio": 4.515970796423849,
           "borderWidth": "2px",
           "text": "See the class schedule",
           "fontSize": 38,
@@ -85,22 +93,24 @@
           "scrollWidth": 472,
           "clientWidth": 472,
           "rect": {
-            "x": 80,
-            "y": 900,
+            "x": 98,
+            "y": 741,
             "width": 476,
             "height": 86
           }
         }
       ],
-      "overflow": false
+      "overflow": false,
+      "canvasColor": "#25443B",
+      "textContrastRatio": 4.515970796423849
     },
     {
-      "file": "sunrise-yoga_02_problem-solution_story.png",
+      "file": "sunrise-yoga_02_hook-card_story.png",
       "hook": "Make room for a first class",
       "width": 1080,
       "height": 1920,
       "ratio": "story",
-      "template": "problem-solution",
+      "template": "hook-card",
       "layoutBox": [
         0.08,
         0.14,
@@ -112,8 +122,10 @@
       "measurements": [
         {
           "index": 0,
-          "selector": "div.label",
+          "selector": "div.eyebrow",
           "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(236, 146, 107)",
+          "contrastRatio": 8.89043451358998,
           "borderWidth": "0px",
           "text": "SUNRISE YOGA STUDIO",
           "fontSize": 34,
@@ -134,6 +146,8 @@
           "index": 1,
           "selector": "h1",
           "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(255, 248, 236)",
+          "contrastRatio": 19.890186432815256,
           "borderWidth": "0px",
           "text": "Make room for a first class",
           "fontSize": 120,
@@ -145,35 +159,17 @@
           "clientWidth": 747,
           "rect": {
             "x": 166,
-            "y": 429,
+            "y": 522,
             "width": 747,
             "height": 382
           }
         },
         {
           "index": 2,
-          "selector": "div.arrow",
-          "background": "rgba(0, 0, 0, 0)",
-          "borderWidth": "0px",
-          "text": "↓",
-          "fontSize": 52,
-          "overflow": false,
-          "overlaps": [],
-          "scrollHeight": 60,
-          "clientHeight": 60,
-          "scrollWidth": 747,
-          "clientWidth": 747,
-          "rect": {
-            "x": 166,
-            "y": 871,
-            "width": 747,
-            "height": 60
-          }
-        },
-        {
-          "index": 3,
           "selector": "p",
           "background": "rgba(0, 0, 0, 0)",
+          "color": "rgb(255, 248, 236)",
+          "contrastRatio": 19.890186432815256,
           "borderWidth": "0px",
           "text": "Explore a welcoming introduction to yoga.",
           "fontSize": 52,
@@ -185,15 +181,17 @@
           "clientWidth": 747,
           "rect": {
             "x": 166,
-            "y": 1024,
+            "y": 1023,
             "width": 747,
             "height": 123
           }
         },
         {
-          "index": 4,
+          "index": 3,
           "selector": "div.cta",
-          "background": "rgb(233, 130, 86)",
+          "background": "rgb(236, 146, 107)",
+          "color": "rgb(37, 68, 59)",
+          "contrastRatio": 4.515970796423849,
           "borderWidth": "2px",
           "text": "See the class schedule",
           "fontSize": 54,
@@ -211,7 +209,9 @@
           }
         }
       ],
-      "overflow": false
+      "overflow": false,
+      "canvasColor": "#25443B",
+      "textContrastRatio": 4.515970796423849
     }
   ]
 }

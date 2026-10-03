@@ -1,7 +1,7 @@
 {
   "ads": [
     {
-      "creative": "images/sunrise-yoga_01_hook-card_feed.png",
+      "creative": "images/sunrise-yoga_01_offer-card_square.png",
       "headline": "A calmer start",
       "primary_text": "A welcoming first yoga class, at your own pace.",
       "link_description": "View beginner class times",
@@ -9,7 +9,7 @@
       "button_text": "See the class schedule"
     },
     {
-      "creative": "images/sunrise-yoga_02_problem-solution_story.png",
+      "creative": "images/sunrise-yoga_02_hook-card_story.png",
       "headline": "Find a first class",
       "primary_text": "Explore a calm introduction to yoga.",
       "link_description": "See class details",

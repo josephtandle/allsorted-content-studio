@@ -150,10 +150,10 @@ const RAW_LAYOUTS = {
     purpose: "Use it last: one action and one word to comment.",
     group: "close",
     supportsBackground: false,
-    fields: { photo: image(), lead: text(), keyword: text(), promise: text(), byline: text(), logo: image() },
+    fields: { photo: image(), lead: text(), headline: text(), keyword: text(), promise: text(), byline: text(), logo: image() },
     required: ["keyword"],
-    wordCaps: { lead: 3, keyword: 2, promise: 10, byline: 8 },
-    sampleSlide: { lead: "Comment", keyword: "MENU", promise: "and we will send this week's bake list." },
+    wordCaps: { lead: 3, headline: 8, keyword: 2, promise: 10, byline: 8 },
+    sampleSlide: { lead: "Comment", headline: "Start with a welcoming class", keyword: "BOOK", promise: "Choose a time that works for you." },
   },
   "11-recap-list": {
     name: "List",

@@ -24,7 +24,6 @@ const FILL_IN = Object.freeze({ pageId: "FILL_IN_PAGE_ID", instagramUserId: "FIL
 const META_CALL_TO_ACTIONS = Object.freeze(["LEARN_MORE", "SHOP_NOW", "SIGN_UP", "BOOK_NOW", "GET_OFFER", "CONTACT_US", "SUBSCRIBE", "DOWNLOAD"]);
 const DEFAULT_CALL_TO_ACTION = "LEARN_MORE";
 // The main line of a slide, in the order it is looked for.
-const MAIN_FIELDS = ["headline", "title", "text", "b_text", "promise", "keyword"];
 
 function plain(value) {
   if (typeof value !== "string" && typeof value !== "number") return "";
@@ -58,10 +57,7 @@ function chosenCallToAction(value) {
 
 function mainLine(slide) {
   if (!slide || typeof slide !== "object") return "";
-  if (plain(slide.number)) return plain(`${plain(slide.number)} ${plain(slide.unit)}`);
-  for (const name of MAIN_FIELDS) if (plain(slide[name])) return plain(slide[name]);
-  for (const name of ["items", "lines"]) if (Array.isArray(slide[name]) && plain(slide[name][0])) return plain(slide[name][0]);
-  return "";
+  return plain(slide.headline) || plain(slide.eyebrow) || "";
 }
 
 // Width and height from the PNG header, or null when the file is not a readable PNG.
@@ -95,8 +91,8 @@ function buildMetaCarouselSpec({ exportDir, files, deckTitle, caption, slides, c
   const cards = used.map((file, index) => {
     const absolute = path.isAbsolute(file) ? file : path.join(dir, file);
     const line = mainLine(deckSlides[index]);
-    if (!line) warnings.push(`Slide ${index + 1} has no headline of its own, so its card uses the carousel title. Edit it in the file.`);
-    return { image: path.relative(dir, absolute).split(path.sep).join("/"), headline: cut(line || title || `Slide ${index + 1}`, HEADLINE_CHARS) };
+    if (!line) warnings.push(`Slide ${index + 1} has no headline or eyebrow, so its card headline is left blank. Add one in the slide data.`);
+    return { image: path.relative(dir, absolute).split(path.sep).join("/"), headline: cut(line, HEADLINE_CHARS) };
   });
   for (const card of cards) {
     if (card.image.startsWith("..") || path.isAbsolute(card.image)) throw Object.assign(new Error("Every slide of the export has to sit inside the export folder."), { code: "outside_export" });

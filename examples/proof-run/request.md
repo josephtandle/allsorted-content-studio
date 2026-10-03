@@ -1,0 +1,1 @@
+Create a welcoming yoga studio ad set with one square image, one story image, and a three-slide carousel. Keep the copy calm and practical, use supplied offer and brand details, and direct viewers to explore class times. No unsupported health claims or testimonials.

@@ -11,7 +11,8 @@
       "text": "Main text colour. It needs strong contrast with bg.",
       "accent": "The brand colour: the big number, the step numeral, the keyword pill, the lit bar and the lit cell.",
       "accentSoft": "A lighter tint of the accent: the italic accent word (*word*) in headlines.",
-      "highlight": "A second highlight, used for bold words (**word**) in headlines."
+      "highlight": "A second highlight, used for bold words (**word**) in headlines.",
+      "ctaText": "High-contrast text colour used on the closing CTA button."
     },
     "fonts": {
       "display": "Headline font. family is the font name; file is a path to a .woff2, .woff, .ttf or .otf file (relative to this file), or null to use a bundled or installed font. Bundled: Cormorant Garamond.",
@@ -39,7 +40,8 @@
     "text": "#F4EFE6",
     "accent": "#2FB5A6",
     "accentSoft": "#93DDD3",
-    "highlight": "#CDEFE9"
+    "highlight": "#CDEFE9",
+    "ctaText": "#101314"
   },
   "fonts": {
     "display": { "family": "Cormorant Garamond", "file": null },

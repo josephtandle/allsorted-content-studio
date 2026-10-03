@@ -29,7 +29,7 @@
         },
         {
           "image": "./carousel/sunrise-yoga_03_carousel_square.png",
-          "headline": "View class times and choose a session"
+          "headline": "Explore a first class"
         }
       ],
       "child_attachments": [
@@ -45,7 +45,7 @@
         },
         {
           "image": "./carousel/sunrise-yoga_03_carousel_square.png",
-          "headline": "View class times and choose a session",
+          "headline": "Explore a first class",
           "link": ""
         }
       ]
@@ -61,7 +61,7 @@
       "callToAction": "BOOK_NOW",
       "cta_type": "BOOK_NOW",
       "status": "PAUSED",
-      "image": "./images/sunrise-yoga_01_hook-card_feed.png",
+      "image": "./images/sunrise-yoga_01_offer-card_square.png",
       "headline": "A calmer start"
     },
     {
@@ -75,7 +75,7 @@
       "callToAction": "SIGN_UP",
       "cta_type": "SIGN_UP",
       "status": "PAUSED",
-      "image": "./images/sunrise-yoga_02_problem-solution_story.png",
+      "image": "./images/sunrise-yoga_02_hook-card_story.png",
       "headline": "Find a first class"
     }
   ]

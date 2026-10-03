@@ -15,10 +15,10 @@ const { tmpDir, writeExport, mockFetch } = require("./publish-helpers.js");
 const ID = "20260102-093000-sell-out-by-nine";
 const SLIDES = [
   { layout: "02-face-claim-cover", headline: "Sell out by *nine*, not by chance." },
-  { layout: "03-big-number-cover", number: "38%", unit: "of our weekend loaves are **ordered** ahead." },
-  { layout: "06-numbered-step", step: "1", title: "Post the menu on Thursday, with one photo and one clear cut-off time for orders", body: "One link." },
-  { layout: "11-recap-list", items: ["Post the menu Thursday", "Close orders Friday noon"] },
-  { layout: "10-cta-comment-keyword", lead: "Comment", keyword: "MENU", promise: "and we will send this week's bake list." },
+  { layout: "03-big-number-cover", headline: "38% of weekend loaves are ordered", number: "38%", unit: "of our weekend loaves are **ordered** ahead." },
+  { layout: "06-numbered-step", headline: "Post the menu Thursday", step: "1", title: "Post the menu on Thursday, with one photo and one clear cut-off time for orders", body: "One link." },
+  { layout: "11-recap-list", eyebrow: "Post the menu Thursday", items: ["Post the menu Thursday", "Close orders Friday noon"] },
+  { layout: "10-cta-comment-keyword", lead: "Comment", headline: "Try a welcoming beginner class", keyword: "MENU", promise: "and we will send this week's bake list." },
 ];
 const CAPTION = "Selling out is a plan, not a lucky morning. Here is the weekly rhythm we use at our (fictional) bakery: menu on Thursday, orders closed Friday noon, bake to the list.";
 
@@ -46,10 +46,10 @@ test("the spec has exactly the handoff shape, with placeholders where only the a
     endCard: true,
     cards: [
       { image: "slide-01.png", headline: "Sell out by nine, not by chance." },
-      { image: "slide-02.png", headline: "38% of our weekend loaves are ordered" },
-      { image: "slide-03.png", headline: "Post the menu on Thursday, with one" },
+      { image: "slide-02.png", headline: "38% of weekend loaves are ordered" },
+      { image: "slide-03.png", headline: "Post the menu Thursday" },
       { image: "slide-04.png", headline: "Post the menu Thursday" },
-      { image: "slide-05.png", headline: "and we will send this week's bake list." },
+      { image: "slide-05.png", headline: "Try a welcoming beginner class" },
     ],
   });
   assert.deepEqual(warnings, [], "square slides and a short caption need no warning");
@@ -84,6 +84,19 @@ test("card count: fewer than 2 is an error, more than 10 takes the first 10 with
   assert.match(warnings[0], /12 slides.*takes 10.*first 10/);
 });
 
+test("Meta card headlines use slide headline, then eyebrow, never body, with word-boundary truncation", () => {
+  const { dir, files } = exportOf(4, { width: 40, height: 40 });
+  const slides = [
+    { headline: "A clear slide headline", promise: "Body must never be used" },
+    { eyebrow: "An eyebrow fallback", promise: "Another body must never be used" },
+    { headline: "This headline has many words and exceeds the forty character limit" },
+    { body: "Body must not become the card headline" },
+  ];
+  const { spec } = buildMetaCarouselSpec({ exportDir: dir, files, deckTitle: "Deck fallback", caption: "Caption", slides, callToAction: "LEARN_MORE" });
+  assert.deepEqual(spec.cards.map(card => card.headline), ["A clear slide headline", "An eyebrow fallback", "This headline has many words and exceeds", ""]);
+  assert.ok(spec.cards.every(card => card.headline.length <= 40));
+});
+
 test("message: the caption cut at a whole word within 125 characters, or the title when there is no caption", () => {
   const { dir, files } = exportOf(2, { width: 40, height: 40 });
   const long = buildMetaCarouselSpec({ exportDir: dir, files, deckTitle: "Sell out by nine", caption: CAPTION, slides: SLIDES });
@@ -100,8 +113,8 @@ test("message: the caption cut at a whole word within 125 characters, or the tit
   const hard = buildMetaCarouselSpec({ exportDir: dir, files, deckTitle: "T", caption: "x".repeat(300), slides: [{ headline: "y".repeat(90) }, {}] });
   assert.equal(hard.spec.message.length, 125);
   assert.equal(hard.spec.cards[0].headline.length, 40);
-  assert.equal(hard.spec.cards[1].headline, "T", "a slide with no line of its own uses the title");
-  assert.ok(hard.warnings.some((warning) => /Slide 2 has no headline/.test(warning)));
+  assert.equal(hard.spec.cards[1].headline, "", "a slide with no headline or eyebrow does not borrow body or title copy");
+  assert.ok(hard.warnings.some((warning) => /Slide 2 has no headline or eyebrow/.test(warning)));
   assert.equal(buildMetaCarouselSpec({ exportDir: dir, files, deckTitle: "", caption: "", slides: [] }).spec.name, "Carousel");
 });
 

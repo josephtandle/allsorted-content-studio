@@ -111,9 +111,9 @@
           }
         ],
         "cta": {
-          "background": "#a95e3e",
-          "color": "#FFF8EC",
-          "contrastRatio": 4.5644349945835465,
+          "background": "#ec926b",
+          "color": "#25443B",
+          "contrastRatio": 4.515970796423849,
           "border": "0px"
         }
       }

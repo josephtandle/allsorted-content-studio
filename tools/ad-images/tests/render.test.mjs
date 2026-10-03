@@ -35,11 +35,11 @@ test('explicit light and dark themes consistently apply brand canvas and ink rol
   assert.match(dark,/body\{background:#25443B!important;color:#FFF8EC!important\}/);
 });
 
-test('CTA chooses a readable foreground and darkens an accent when needed',()=>{
+test('CTA keeps the brand accent when either brand text color meets contrast',()=>{
   const template=fs.readFileSync(path.join(root,'templates/offer-card.html'),'utf8');
   const html=makeHtml(template,{theme:'light',brand:{colors:{canvas:'#FFFFFF',ink:'#000000',accent:'#FFCC00'}}},1080,1080);
-  assert.match(html,/--accent:#(?:[0-9a-f]{6})!important/i);
-  assert.match(html,/--cta-text:#(?:000000|FFFFFF)!important/);
+  assert.match(html,/--accent:#FFCC00!important/i);
+  assert.match(html,/--cta-text:#000000!important/i);
 });
 
 test('carousel colour integration belongs to the engine adapter; image templates keep their theme roles',()=>{

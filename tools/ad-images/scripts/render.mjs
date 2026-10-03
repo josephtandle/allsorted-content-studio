@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { resolveCtaColors } from './cta-colors.mjs';
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
 
@@ -56,14 +57,9 @@ export function makeHtml(template, data, width, height) {
   const themedColors = theme === 'dark'
     ? { canvas: dark.canvas || colors.ink || '#173B35', ink: dark.ink || colors.canvas || colors.background || '#F7F2E8', accent: dark.accent || colors.accent || '#E47C52' }
     : { canvas: colors.canvas || colors.background || '#F7F2E8', ink: colors.ink || '#173B35', accent: colors.accent || '#E47C52' };
-  const rgb = value => { const s=String(value||'').trim(); const m=s.match(/^#([\da-f]{3}|[\da-f]{6})$/i); if(m){const h=m[1].length===3?[...m[1]].map(x=>x+x).join(''):m[1];return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16));} const a=s.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i); return a?[+a[1],+a[2],+a[3]]:null; };
-  const lum = value => { const c=rgb(value); if(!c)return 0; const [r,g,b]=c.map(x=>x/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4); return .2126*r+.7152*g+.0722*b; };
-  const contrast = (a,b) => {const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);};
-  if(contrast(themedColors.accent,themedColors.canvas)<4.5){const original=rgb(themedColors.accent),target=lum(themedColors.canvas)<lum(themedColors.accent)?255:0;if(original)for(let step=1;step<=120&&contrast(themedColors.accent,themedColors.canvas)<4.5;step++){const f=step/120;themedColors.accent=`#${original.map(v=>Math.round(v+(target-v)*f).toString(16).padStart(2,'0')).join('')}`;}}
-  const candidates=[themedColors.ink,themedColors.canvas].map(color=>({color,ratio:contrast(color,themedColors.accent)})).sort((a,b)=>b.ratio-a.ratio);
-  let button=themedColors.accent;
-  if(candidates[0].ratio<4.5){const c=rgb(button)||[233,130,86]; for(let i=0;i<120&&Math.max(contrast(themedColors.ink,button),contrast(themedColors.canvas,button))<4.5;i++){const factor=1-i/120;button=`#${c.map(v=>Math.round(v*factor).toString(16).padStart(2,'0')).join('')}`;}}
-  const ctaText=[themedColors.ink,themedColors.canvas].sort((a,b)=>contrast(b,button)-contrast(a,button))[0];
+  const ctaColors = resolveCtaColors({ accent: themedColors.accent, ink: colors.ink || '#173B35', canvas: colors.canvas || colors.background || '#F7F2E8', surface: themedColors.canvas });
+  const button = ctaColors.button;
+  const ctaText = ctaColors.text;
   const values = {
     BACKGROUND: safeCss(themedColors.canvas, '#F7F2E8'), INK: safeCss(themedColors.ink, '#173B35'), ACCENT: safeCss(button, '#E47C52'),
     DISPLAY_FONT: safeCss(fonts.display, 'Georgia'), BODY_FONT: safeCss(fonts.body, 'Arial'), BRAND: data.brandName || brand.brandName || 'Your business',

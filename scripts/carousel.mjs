@@ -3,6 +3,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { resolveCtaColors } from '../tools/ad-images/scripts/cta-colors.mjs';
 
 const { resolveStudioRoot } = createRequire(import.meta.url)('./studio-root.cjs');
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -35,11 +36,9 @@ const engineBrand = {
   fonts: { display: { family: brand.fonts?.display || 'Georgia' }, body: { family: brand.fonts?.body || 'Arial' } },
   chrome: { showByline: false, showCounter: true, showProgress: true, showCue: false, showCorners: false },
 };
-const rgb = value => { const m=String(value||'').match(/^#([\da-f]{3}|[\da-f]{6})$/i); if(!m)return null;const h=m[1].length===3?[...m[1]].map(x=>x+x).join(''):m[1];return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16)); };
-const lum = value => {const c=rgb(value);if(!c)return 0;const [r,g,b]=c.map(x=>x/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return .2126*r+.7152*g+.0722*b;};
-const ratio = (a,b) => (Math.max(lum(a),lum(b))+.05)/(Math.min(lum(a),lum(b))+.05);
-let buttonColor=engineBrand.colors.accent;let foreground=[engineBrand.colors.text,engineBrand.colors.bg].sort((a,b)=>ratio(b,buttonColor)-ratio(a,buttonColor))[0];
-if(ratio(foreground,buttonColor)<4.5){const channels=rgb(buttonColor)||[233,130,86];for(let n=1;n<=120;n++){const f=1-n/120;buttonColor=`#${channels.map(x=>Math.round(x*f).toString(16).padStart(2,'0')).join('')}`;foreground=[engineBrand.colors.text,engineBrand.colors.bg].sort((a,b)=>ratio(b,buttonColor)-ratio(a,buttonColor))[0];if(ratio(foreground,buttonColor)>=4.5)break;}}
+const ctaColors = resolveCtaColors({ accent: engineBrand.colors.accent, ink: colors.ink || '#173B35', canvas: colors.canvas || colors.background || '#F7F2E8', surface: engineBrand.colors.bg });
+const buttonColor=ctaColors.button;
+const foreground=ctaColors.text;
 const closingSlide = slides.at(-1) || {};
 const ctaText = carouselCopy?.button_text || input.cta_text || input.ctaText || closingSlide.cta || closingSlide.button_text || brand.cta || closingSlide.keyword || '';
 const layout = input.layout || '01-editorial-statement';
@@ -82,7 +81,7 @@ for (const [index, file] of files.entries()) {
   const expectsSupporting = Boolean(file.slide.body || file.slide.sub || file.slide.promise);
   const expectsEyebrow = Boolean(file.slide.eyebrow || file.slide.lead);
   const expectsVisible = Boolean(file.slide.prompt);
-  manifest.files.push({ file: file.name, hook: file.slide.headline || file.slide.heading || file.slide.title || file.slide.keyword || '', width: 1080, height: size === 'square' ? 1080 : size === 'story' ? 1920 : 1350, status: 'rendered', showCta: index === files.length - 1, overflow: !(slideQa?.ok ?? result.metadata?.qa?.ok ?? true), expectedTextKinds: [...(expectsSupporting ? ['supporting'] : []), ...(expectsVisible ? ['visible'] : []), ...(expectsEyebrow ? ['eyebrow'] : []), 'counter'], measurements: { text: slideQa?.fitScales?.__studioTextMeasurements || [], cta: index === files.length - 1 ? { background: engineBrand.colors.accent, color: foreground, contrastRatio: ratio(foreground, engineBrand.colors.accent), border: '0px' } : undefined } });
+  manifest.files.push({ file: file.name, hook: file.slide.headline || file.slide.heading || file.slide.title || file.slide.keyword || '', width: 1080, height: size === 'square' ? 1080 : size === 'story' ? 1920 : 1350, status: 'rendered', showCta: index === files.length - 1, overflow: !(slideQa?.ok ?? result.metadata?.qa?.ok ?? true), expectedTextKinds: [...(expectsSupporting ? ['supporting'] : []), ...(expectsVisible ? ['visible'] : []), ...(expectsEyebrow ? ['eyebrow'] : []), 'counter'], measurements: { text: slideQa?.fitScales?.__studioTextMeasurements || [], cta: index === files.length - 1 ? { background: engineBrand.colors.accent, color: foreground, contrastRatio: ctaColors.contrastRatio, border: '0px' } : undefined } });
 }
 fs.rmSync(measuredDir, { recursive: true, force: true });fs.rmSync(measuredResultPath, { force: true });
 fs.writeFileSync(path.join(output, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);

@@ -25,7 +25,7 @@ if [ "$CHECK" -eq 1 ]; then
   CHECK_ROOT=$SRC
   [ -f "$DEST/scripts/studio.mjs" ] && CHECK_ROOT=$DEST
   REQUIRED_STATUS=0
-  for file in README.md DIRECTOR.md INSTALL-PROMPT.md AGENTS.md VERSION CHANGELOG.md package.json scripts/studio.mjs scripts/carousel.mjs scripts/install-files.mjs skill/SKILL.md docs/DATA-FORMATS.md brand/BRAND-BRAIN.template.md brand/BRAND-BRAIN.example.md brand/brand.example.json tools/hooklab/SKILL.md tools/ad-images/scripts/render.mjs tools/carousel-builder/bin/carousel.js tools/heygen-ad-videos/scripts/heygen.mjs tools/video-editor/index.js agents/content-checker.md agents/content-copywriter.md agents/content-carousel-maker.md agents/content-director.md agents/content-hook-writer.md agents/content-image-maker.md agents/content-video-editor.md agents/content-video-maker.md; do
+  for file in README.md DIRECTOR.md INSTALL-PROMPT.md AGENTS.md VERSION CHANGELOG.md package.json scripts/studio.mjs scripts/carousel.mjs scripts/install-files.mjs skill/SKILL.md docs/DATA-FORMATS.md brand/BRAND-BRAIN.template.md brand/BRAND-BRAIN.example.md brand/brand.example.json tools/hooklab/SKILL.md tools/ad-images/scripts/render.mjs tools/ad-images/scripts/cta-colors.mjs tools/carousel-builder/bin/carousel.js tools/heygen-ad-videos/scripts/heygen.mjs tools/video-editor/index.js agents/content-checker.md agents/content-copywriter.md agents/content-carousel-maker.md agents/content-director.md agents/content-hook-writer.md agents/content-image-maker.md agents/content-video-editor.md agents/content-video-maker.md; do
     if [ ! -f "$CHECK_ROOT/$file" ]; then echo "Required file: missing $file"; REQUIRED_STATUS=1; fi
   done
   set +e

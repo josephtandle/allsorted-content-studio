@@ -10,6 +10,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const studio = resolveStudioRoot(here, here) || path.dirname(here);
 const engine = path.join(studio, 'tools/carousel-builder/bin/carousel.js');
 const safeSlug = value => String(value || 'creative').normalize('NFKD').replace(/[^\w\s-]/g, '').trim().toLowerCase().replace(/[\s-]+/g, '-').slice(0, 48) || 'creative';
+const withoutItemCounter = value => /^\s*(?:[A-Z][A-Z\s-]*\s+)?\d+\s+OF\s+\d+\s*$/i.test(String(value || '')) ? '' : value;
 const run = path.resolve(process.argv[2] || '');
 if (!run || !fs.existsSync(path.join(run, 'brief.md'))) throw new Error('Usage: node scripts/carousel.mjs RUN_DIR (run must contain brief.md)');
 const input = JSON.parse(fs.readFileSync(path.join(run, 'carousel-data.json'), 'utf8'));
@@ -45,8 +46,9 @@ const layout = input.layout || '01-editorial-statement';
 const deck = { title: input.title || 'Carousel', size: 'square', caption: input.message || '', slides: slides.map((slide, index) => {
   if (slide.layout) return { ...slide, _studioQa: true };
   const headline = slide.headline || slide.heading || slide.title || '';
-  if (index === slides.length - 1) return { layout: '10-cta-comment-keyword', lead: slide.eyebrow || '', headline, keyword: ctaText || slide.keyword || '', promise: slide.body || '', byline: '', _studioQa: true };
-  return { layout, headline, eyebrow: slide.eyebrow || '', sub: slide.body || slide.sub || '', _studioQa: true };
+  const eyebrow = withoutItemCounter(slide.eyebrow || '');
+  if (index === slides.length - 1) return { layout: '10-cta-comment-keyword', lead: eyebrow, headline, keyword: ctaText || slide.keyword || '', promise: slide.body || '', byline: '', _studioQa: true };
+  return { layout, headline, eyebrow, sub: slide.body || slide.sub || '', _studioQa: true };
 }) };
 const dataDir = path.join(studio, '.test-data', `carousel-${safeSlug(path.basename(run))}`); fs.mkdirSync(dataDir, { recursive: true });
 engineBrand.colors.accent=buttonColor; engineBrand.colors.ctaText=foreground;
@@ -79,7 +81,7 @@ for (const [index, file] of files.entries()) {
   if (file.source !== target) fs.copyFileSync(file.source, target);
   const slideQa = measured.slides?.[index];
   const expectsSupporting = Boolean(file.slide.body || file.slide.sub || file.slide.promise);
-  const expectsEyebrow = Boolean(file.slide.eyebrow || file.slide.lead);
+  const expectsEyebrow = Boolean(withoutItemCounter(file.slide.eyebrow || file.slide.lead || ''));
   const expectsVisible = Boolean(file.slide.prompt);
   manifest.files.push({ file: file.name, hook: file.slide.headline || file.slide.heading || file.slide.title || file.slide.keyword || '', width: 1080, height: size === 'square' ? 1080 : size === 'story' ? 1920 : 1350, status: 'rendered', showCta: index === files.length - 1, overflow: !(slideQa?.ok ?? result.metadata?.qa?.ok ?? true), expectedTextKinds: [...(expectsSupporting ? ['supporting'] : []), ...(expectsVisible ? ['visible'] : []), ...(expectsEyebrow ? ['eyebrow'] : []), 'counter'], measurements: { text: slideQa?.fitScales?.__studioTextMeasurements || [], cta: index === files.length - 1 ? { background: engineBrand.colors.accent, color: foreground, contrastRatio: ctaColors.contrastRatio, border: '0px' } : undefined } });
 }

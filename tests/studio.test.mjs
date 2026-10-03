@@ -22,6 +22,18 @@ test('no-argument usage lists every studio subcommand and brief generation fills
   const result=exec(['scripts/studio.mjs','brief',run]);assert.equal(result.status,0,result.stderr||result.stdout);const brief=fs.readFileSync(path.join(run,'brief.md'),'utf8');assert.match(brief,/Create two square images/);assert.match(brief,/Beginner yoga classes/);assert.match(brief,/^## Audience\n\S+/m);assert.match(brief,/^## Format and count\n2 square images/m);assert.doesNotMatch(brief,/^- Format and count$/m);fs.rmSync(run,{recursive:true,force:true});
 });
 
+test('installed --dir shipped Markdown explains the studio root without unresolved placeholders',()=>{
+  const home=path.join(root,'.test-data/md-install-home'),dest=path.join(home,'studio copy');fs.rmSync(home,{recursive:true,force:true});
+  try {
+    const install=spawnSync('sh',['install.sh','--home',home,'--dir',dest,'--no-npm'],{cwd:root,encoding:'utf8',env:{...process.env,PATH:`/opt/homebrew/bin:${process.env.PATH}`}});
+    assert.equal(install.status,0,install.stderr||install.stdout);
+    const markdown=walk(dest).filter(file=>file.endsWith('.md'));
+    assert.ok(markdown.length>0);
+    for(const file of markdown){const text=fs.readFileSync(file,'utf8'),rel=path.relative(dest,file);assert.doesNotMatch(text,/<path>/i,`${rel} has no unresolved path placeholder`);assert.doesNotMatch(text,/(?:set|resolve)\s+`?CONTENT_STUDIO_DIR`?\s+(?:to|as)\s+(?:this folder|this directory|the directory containing)/i,`${rel} has no instruction requiring an unresolved root variable`);}
+    for(const name of ['AGENTS.md','DIRECTOR.md','README.md'])assert.match(fs.readFileSync(path.join(dest,name),'utf8'),/studio root is the folder that contains this file/i,name);
+  } finally {fs.rmSync(home,{recursive:true,force:true});}
+});
+
 test('brief parses documented image ratios and carousel slide counts, and check reports missing requested creatives',()=>{
   const run=path.join(root,'.test-data/requested-counts');fs.rmSync(run,{recursive:true,force:true});fs.mkdirSync(path.join(run,'images'),{recursive:true});fs.mkdirSync(path.join(run,'carousel'),{recursive:true});
   fs.writeFileSync(path.join(run,'request.md'),'Create two square images, one story image, and a three-slide carousel.');
@@ -90,7 +102,7 @@ test('install twice into a spaced path with --no-npm leaves zero changed files o
     fs.writeFileSync(path.join(dest, 'runs/keep/brief.md'), 'keep-run');
     fs.writeFileSync(path.join(dest, 'learnings/LEARNINGS.md'), 'keep-learning');
     const target = path.join(dest, 'README.md');
-    assert.equal(fs.readFileSync(path.join(dest,'DIRECTOR.md'),'utf8').includes('CONTENT_STUDIO_DIR'),true,'install-root director keeps its documented placeholder');
+    assert.match(fs.readFileSync(path.join(dest,'DIRECTOR.md'),'utf8'),/studio root is the folder that contains this file/i,'install-root director gives a file-relative studio-root rule');
     const installedAgent = path.join(home, '.claude/agents/content-director.md');
     const installedSkill = path.join(home, '.claude/skills/content-studio/SKILL.md');
     const preserved = ['brand/BRAND-BRAIN.md', 'brand/brand.json', 'runs/keep/brief.md', 'learnings/LEARNINGS.md'].map((p) => path.join(dest, p));
@@ -186,7 +198,7 @@ test('mixed offline run renders one button image and a three-slide button carous
   const imageData2={...imageData,hook:'Find your first class',headline:'Find your first class',body:'Explore a calm introduction to yoga.'};const dataPath2=path.join(run,'data/sunrise-yoga_02_offer-card_square.json');fs.writeFileSync(dataPath2,JSON.stringify(imageData2));const imagePath2=path.join(run,'images/sunrise-yoga_02_offer-card_square.png');const render2=exec(['tools/ad-images/scripts/render.mjs','--template','tools/ad-images/templates/offer-card.html','--data',dataPath2,'--out',imagePath2,'--width','1080','--height','1080','--manifest',path.join(run,'images/manifest.json')]);assert.equal(render2.status,0,render2.stderr||render2.stdout);
   const carouselData={title:'sunrise-yoga',preset:'square',theme:'dark',slides:[
     {eyebrow:'WHAT GETS IN THE WAY',headline:'Starting yoga can feel unfamiliar',body:'A first class is easier when you know what to expect.'},
-    {eyebrow:'A BETTER WAY',headline:'Begin with a gentle class',body:'A small-group introduction gives you room to learn.'},
+    {eyebrow:'FACT 1 OF 4',headline:'Begin with a gentle class',body:'A small-group introduction gives you room to learn.'},
     {eyebrow:'THE OUTCOME',headline:'Learn a few new movements',body:'Try one welcoming class at your own pace.',cta:brand.cta}
   ]};fs.writeFileSync(path.join(run,'carousel-data.json'),JSON.stringify(carouselData));
   fs.writeFileSync(path.join(run,'copy/ads.json'),JSON.stringify({ads:[
@@ -197,7 +209,7 @@ test('mixed offline run renders one button image and a three-slide button carous
   const car=exec(['scripts/carousel.mjs',run]);assert.equal(car.status,0,car.stderr||car.stdout);
   const renderedDeck=JSON.parse(fs.readFileSync(path.join(root,'.test-data/carousel-mixed-proof-run/studio-deck.json'),'utf8'));
   assert.equal(renderedDeck.slides[0].eyebrow,carouselData.slides[0].eyebrow);assert.equal(renderedDeck.slides[0].sub,carouselData.slides[0].body);
-  assert.equal(renderedDeck.slides[1].eyebrow,carouselData.slides[1].eyebrow);assert.equal(renderedDeck.slides[1].sub,carouselData.slides[1].body);
+  assert.equal(renderedDeck.slides[1].eyebrow,'','generated item counter is removed so it cannot disagree with the slide number');assert.equal(renderedDeck.slides[1].sub,carouselData.slides[1].body);
   assert.equal(renderedDeck.slides[2].lead,carouselData.slides[2].eyebrow);assert.equal(renderedDeck.slides[2].headline,carouselData.slides[2].headline);assert.match(renderedDeck.slides[2].keyword,/See the class schedule/);assert.match(renderedDeck.slides[2].promise,/Try one welcoming class at your own pace/);
   const carRefused=exec(['scripts/carousel.mjs',run]);assert.notEqual(carRefused.status,0);assert.match(carRefused.stderr,/Use --overwrite to replace it/);
   const carOverwrite=exec(['scripts/carousel.mjs',run,'--overwrite']);assert.equal(carOverwrite.status,0,carOverwrite.stderr||carOverwrite.stdout);

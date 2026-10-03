@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1
+
+- Replaced unresolved studio-root instructions in shipped root docs with a file-relative rule.
+- Removed generated item counters from carousel eyebrow labels so the slide counter is the only count.
+- Added installed-copy documentation and carousel counter regression tests.
+
 ## 1.1.0
 
 - Enforced 4.5:1 canvas and CTA contrast with automatic CTA text selection and accent darkening.

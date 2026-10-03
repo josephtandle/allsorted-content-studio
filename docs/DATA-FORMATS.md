@@ -1,6 +1,6 @@
 # Studio data formats
 
-Use UTF-8 JSON. Paths in commands are relative to the run folder unless absolute. Studio-root rule: when reading from the source/install root, resolve `CONTENT_STUDIO_DIR` to the directory containing this file; the installer resolves it in Claude-installed skill and agent copies. Replace `RUN_DIR` with the current run folder.
+Use UTF-8 JSON. Paths in commands are relative to the run folder unless absolute. Studio-root rule: the studio root is the folder that contains this file. Use that folder when a command needs the studio root. Replace `RUN_DIR` with the current run folder.
 
 ## Shared brand and image inputs
 

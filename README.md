@@ -1,5 +1,7 @@
 # All Sorted Content Studio
 
+The studio root is the folder that contains this file. Use that folder when a command needs the studio root.
+
 All Sorted Content Studio helps you make ads from a brief. It creates images, carousels, copy, and video materials in one place. It checks the work and prepares a handoff for review.
 
 ## The five tools

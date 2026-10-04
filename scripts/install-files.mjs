@@ -97,6 +97,8 @@ fs.mkdirSync(skills, { recursive: true }); fs.mkdirSync(agents, { recursive: tru
 safeSkill(path.join(dest, 'skill'), path.join(skills, 'content-studio'), 'content-studio');
 safeSkill(path.join(dest, 'tools/ad-images'), path.join(skills, 'ad-images'), 'ad-images');
 safeSkill(path.join(dest, 'tools/heygen-ad-videos'), path.join(skills, 'heygen-ad-videos'), 'heygen-ad-videos');
+safeSkill(path.join(dest, 'tools/launch-video/brag'), path.join(skills, 'brag'), 'brag');
+safeSkill(path.join(dest, 'tools/launch-video/brag-slim'), path.join(skills, 'brag-slim'), 'brag-slim');
 const hook = path.join(skills, 'hooklab'), hookSource = path.join(dest, 'tools/hooklab');
 const priorHook = pathExists(hook) && !sameTree(hookSource, hook, true) ? backup(hook, 'hooklab') : null;
 copyTree(hookSource, hook, '', true, true);

@@ -1,0 +1,6 @@
+Upstream: https://github.com/latent-spaces/brag
+Version: 0.4.0
+Commit: cb89b9f
+Date: 2026-10-04
+License: MIT (tools/launch-video/LICENSE), kept as upstream ships it
+Copied: skills/brag and skills/brag-slim, unchanged except scripts/uv.lock (upstream dev lockfile, omitted)

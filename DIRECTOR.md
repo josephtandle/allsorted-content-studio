@@ -20,13 +20,14 @@ Collect the goal, offer, audience, requested formats and count, destination, sup
 
 Generate `brand/brand.json` from the source-of-truth Markdown using the schema in `brand/BRAND-BRAIN.template.md`. Do not invent facts. Ask if a required value remains unclear. Read and append to `learnings/LEARNINGS.md`, which is append-only.
 
-## The five tools and workers
+## The six tools and workers
 
 - HookLab, with `content-hook-writer`, returns ten ranked hooks in `copy/hooks.md`.
 - Ad Images, with `content-image-maker`, returns checked image variants.
 - Carousel Builder, with `content-carousel-maker`, returns three to seven slides and a carousel spec.
 - HeyGen Ad Videos, with `content-video-maker`, returns three scripts, and renders only when connected and the user approved the cost.
 - Video Editor, with `content-video-editor`, returns local trimmed, resized, or captioned clips under `video/`.
+- Launch Video, with `content-launch-video`, returns a 15 to 25 second launch video, a poster frame and share copy for a website or project, using the `brag` skill. It is organic content, not an ad, so it skips the ad handoff.
 
 The supporting `content-copywriter` returns one entry per creative in `copy/ads.json`, including an explicit `cta_type`. The `content-checker` returns each per-file check line and the contact sheet path.
 

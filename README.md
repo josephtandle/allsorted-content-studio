@@ -4,13 +4,14 @@ The studio root is the folder that contains this file. Use that folder when a co
 
 All Sorted Content Studio helps you make ads from a brief. It creates images, carousels, copy, and video materials in one place. It checks the work and prepares a handoff for review.
 
-## The five tools
+## The six tools
 
 - **HookLab** finds and ranks opening lines for your ad.
 - **Ad Images** makes checked images for square, feed, and story formats.
 - **Carousel Builder** turns one idea into a set of slides.
 - **HeyGen Ad Videos** prepares video scripts and can render only with your approval.
 - **Video Editor** trims and resizes your clips and adds captions you already have.
+- **Launch Video** turns your website or project into a 15 to 25 second launch video with music and share copy. Run `/brag` in your project folder, or ask the studio for a launch video.
 
 ## Ask for an ad
 
@@ -19,6 +20,7 @@ Use `/content-studio`, then tell it what you need. For example:
 - “Make me three square ads for my beginner yoga offer.”
 - “Write hooks for my ad and make a five-slide carousel.”
 - “Edit this clip for stories and add the captions in this SRT file.”
+- “Make a launch video of my new website.”
 
 ## What you get
 
@@ -70,3 +72,7 @@ Use `node scripts/studio.mjs brand-json` after editing `brand/BRAND-BRAIN.md`. E
 ## Licence
 
 All Sorted Personal Use License: use it for yourself, never sell or redistribute it. See LICENSE.
+
+## Credits
+
+Launch Video is the open-source /brag skill by Shunit Haviv Hakimi (github.com/latent-spaces/brag), included unchanged under its MIT licence in `tools/launch-video/LICENSE`. That folder keeps its MIT terms; the rest of the studio is under the All Sorted Personal Use License.

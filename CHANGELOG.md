@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+
+- New sixth tool, Launch Video: the open-source /brag skill (latent-spaces/brag 0.4.0, MIT, pinned in `tools/launch-video/PINNED`). It turns a website or project into a 15 to 25 second launch video with music, a poster frame and share copy. The installer adds the `brag` and `brag-slim` skills and a `content-launch-video` worker.
+
 ## 1.1.3
 
 - Weekly self-update: the installer schedules `scripts/self-update.js`, which keeps this clone on the latest release once a week, backs up your brand, learnings and runs first, and rolls back if the self-test fails. Turn it off with `node scripts/self-update.js --off`, or skip scheduling with CONTENT_STUDIO_SKIP_UPDATES=1.

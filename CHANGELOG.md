@@ -1,8 +1,16 @@
 # Changelog
 
-## 1.2.0
+## 1.2.0 (2026-10-04)
 
 - New sixth tool, Launch Video: the open-source /brag skill (latent-spaces/brag 0.4.0, MIT, pinned in `tools/launch-video/PINNED`). It turns a website or project into a 15 to 25 second launch video with music, a poster frame and share copy. The installer adds the `brag` and `brag-slim` skills and a `content-launch-video` worker.
+
+## 1.1.5 (2026-10-04)
+
+- Tests: the suite seeds the example brand when brand/brand.json is missing, so a fresh clone passes all 20 tests, and removes what it seeded afterwards.
+
+## 1.1.4 (2026-10-04)
+
+- Fix: `scripts/self-update.js` now runs in a fresh clone. The studio's package.json makes .js files ES modules, so the updater (CommonJS) died at its first `require`. `scripts/package.json` marks that folder as CommonJS; every command, path and document stays the same.
 
 ## 1.1.3
 

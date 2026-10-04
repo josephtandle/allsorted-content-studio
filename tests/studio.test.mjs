@@ -10,6 +10,12 @@ import { createRequire } from 'node:module';
 process.env.CONTENT_STUDIO_SKIP_UPDATES='1'
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const node='/opt/homebrew/bin/node';
+// A fresh clone has no brand/brand.json (it is the owner's file and gitignored). The
+// root-studio tests expect the example brand, so seed it and remove it afterwards.
+const seededBrand=[];
+test.before(()=>{for(const file of ['brand/BRAND-BRAIN.md','brand/brand.json']){if(!fs.existsSync(path.join(root,file)))seededBrand.push(file)}
+  if(seededBrand.length){const made=spawnSync(node,['scripts/studio.mjs','use-example-brand'],{cwd:root,encoding:'utf8',env:{...process.env}});if(made.status!==0)throw new Error(made.stderr||made.stdout)}});
+test.after(()=>{for(const file of seededBrand)fs.rmSync(path.join(root,file),{force:true})});
 const require=createRequire(import.meta.url);
 function exec(args,env={}){return spawnSync(node,args,{cwd:root,encoding:'utf8',env:{...process.env,CONTENT_STUDIO_DIR:root,...env}})}
 function makeBrandStudio(){const dir=path.join(root,'.test-data/brand-studio');fs.rmSync(dir,{recursive:true,force:true});fs.mkdirSync(path.join(dir,'brand'),{recursive:true});fs.symlinkSync(path.join(root,'tools'),path.join(dir,'tools'),'dir');for(const file of ['BRAND-BRAIN.example.md','BRAND-BRAIN.template.md','brand.example.json'])fs.copyFileSync(path.join(root,'brand',file),path.join(dir,'brand',file));return dir;}
